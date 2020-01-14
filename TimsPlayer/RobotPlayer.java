@@ -155,7 +155,7 @@ public strictfp class RobotPlayer {
 
             if (tryBuild(RobotType.LANDSCAPER, dirTo(HQloc))) {
                 tryBuild(RobotType.LANDSCAPER, dirTo(HQloc));
-                landscaperLimit++;
+                landscaperCount++;
             }
         }
     }
