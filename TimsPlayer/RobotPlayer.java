@@ -140,7 +140,7 @@ public strictfp class RobotPlayer {
             moveTowards(HQloc);
         }
         // Scan tiles for soup
-        MapLocation bestTile;
+        MapLocation bestTile = null;
         int maxSoup = 0;
         int xChange=1;
         int yChange=0;
