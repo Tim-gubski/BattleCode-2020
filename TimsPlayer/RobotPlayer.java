@@ -118,12 +118,10 @@ public strictfp class RobotPlayer {
             }
         }
 
-
         //If school doesn't exist and robot is in a set radius around the HQ, create a design school
         if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
             tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
         }
-
 
         //Try refining in all directions
         for (Direction dir : directions) {
@@ -146,27 +144,27 @@ public strictfp class RobotPlayer {
         int maxSoup = 0;
         int xChange = 1;
         int yChange = 0;
-        for (int scanLevel = 2; scanLevel<5; i++){
+        for (int scanLevel = 2; scanLevel < 5; scanLevel++) {
             int x = rc.getLocation().x - scanLevel;
             int y = rc.getLocation().y - scanLevel;
-            for(int wall = 0; i<4;i++) {
-                for (int i = 0; i < (scanlevel * 2 + 1); i++) {
-                    rc.setIndicatorDot(new MapLocation(x,y),255,0,0);
-                    if(trySenseSoup(new MapLocation(x,y)) > maxSoup){
-                        bestTile=new MapLocation(x,y);
+            for (int wall = 0; wall < 4; wall++) {
+                for (int e = 0; e < (scanLevel * 2 + 1); e++) {
+                    rc.setIndicatorDot(new MapLocation(x, y), 255, 0, 0);
+                    if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
+                        bestTile = new MapLocation(x, y);
                     }
-                    x+=xChange;
-                    y+=yChange;
+                    x += xChange;
+                    y += yChange;
                 }
-                if(wall==0){
-                    xChange=0;
-                    yChange=-1;
-                }else if(wall==1){
-                    xChange=-1;
-                    yChange=0;
-                }else if(wall==2){
-                    xChange=0;
-                    yChange=1;
+                if (wall == 0) {
+                    xChange = 0;
+                    yChange = -1;
+                } else if (wall == 1) {
+                    xChange = -1;
+                    yChange = 0;
+                } else if (wall == 2) {
+                    xChange = 0;
+                    yChange = 1;
                 }
             }
         }
@@ -255,10 +253,13 @@ public strictfp class RobotPlayer {
         // else
         //     return tryMove(Direction.NORTH);
     }
+
     static int trySenseSoup(MapLocation loc) throws GameActionException {
         if (rc.isReady() && rc.canSenseLocation(loc)) {
             return rc.senseSoup(loc);
-        } else return 0;
+        } else {
+            return 0;
+        }
     }
 
     static boolean tryMove(Direction dir) throws GameActionException {
