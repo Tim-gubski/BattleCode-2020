@@ -142,32 +142,36 @@ public strictfp class RobotPlayer {
         // Scan tiles for soup
         MapLocation bestTile;
         int maxSoup = 0;
-        int xChange = 1;
-        int yChange = 0;
-        for (int scanLevel = 2; scanLevel < 5; scanLevel++) {
+        int xChange=1;
+        int yChange=0;
+        for (int scanLevel = 2; scanLevel < 7; scanLevel++) {
             int x = rc.getLocation().x - scanLevel;
-            int y = rc.getLocation().y - scanLevel;
+            int y = rc.getLocation().y + scanLevel;
             for (int wall = 0; wall < 4; wall++) {
-                for (int e = 0; e < (scanLevel * 2 + 1); e++) {
-                    rc.setIndicatorDot(new MapLocation(x, y), 255, 0, 0);
+                if (wall == 0) {
+                    xChange = 1;
+                    yChange = 0;
+                } else if (wall == 1) {
+                    xChange = 0;
+                    yChange = -1;
+                } else if (wall == 2) {
+                    xChange = -1;
+                    yChange = 0;
+                }else if (wall==3){
+                    xChange=0;
+                    yChange=1;
+                }
+                for (int e = 0; e < (scanLevel * 2); e++) {
                     if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
                         bestTile = new MapLocation(x, y);
                     }
                     x += xChange;
                     y += yChange;
                 }
-                if (wall == 0) {
-                    xChange = 0;
-                    yChange = -1;
-                } else if (wall == 1) {
-                    xChange = -1;
-                    yChange = 0;
-                } else if (wall == 2) {
-                    xChange = 0;
-                    yChange = 1;
-                }
+
             }
         }
+        rc.setIndicatorDot(bestTile, 255, 0, 0);
 
     }
 
