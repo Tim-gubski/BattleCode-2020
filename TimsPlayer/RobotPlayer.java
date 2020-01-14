@@ -138,9 +138,11 @@ public strictfp class RobotPlayer {
         //If soup capacity is full, return to HQ to deposit soup
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             moveTowards(HQloc);
-        } else {
-            moveTowards(findSoup());
         }
+//        else {
+//            tryMove(dirTo(findSoup()));
+//        }
+        tryMove(randomDirection());
 
     }
 
