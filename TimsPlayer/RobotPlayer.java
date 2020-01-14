@@ -170,7 +170,20 @@ public strictfp class RobotPlayer {
     }
 
     static void runLandscaper() throws GameActionException {
-        tryMove(randomDirection());
+        int lowestElevation = 10000;
+        MapLocation bestTile = null;
+        tryDigDirt(dirTo(HQloc).opposite());
+        for (Direction dir : directions) {
+            if(rc.trySenseElevation(HQloc.add(dir))<lowestElevation){
+                lowestElevation = rc.trySenseElevation(HQloc.add(dir));
+                bestTile=HQloc.add(dir);
+            }
+        }
+        if(tryDropDirt(bestTile)){
+        }else{
+            moveTowards(bestTile);
+        }
+
     }
 
     static void runDeliveryDrone() throws GameActionException {
@@ -312,6 +325,30 @@ public strictfp class RobotPlayer {
             return true;
         } else {
             return false;
+        }
+    }
+    static boolean tryDropDirt(MapLocation loc) throws GameActionException {
+        if (rc.isReady() && rc.canDespoitDirst(dirTo(loc))) {
+            rc.dropDirt(dirTo(loc));
+            return true;
+        } else {
+            return false;
+        }
+    }
+    static boolean tryDigDirt(Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canDigDirst(dir)) {
+            rc.digDirt(dir);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static int trySenseElevation(MapLocation loc) throws GameActionException {
+        if (rc.isReady() && rc.canSenseLocation(loc)) {
+            return rc.senseElevation(loc);
+        } else {
+            return 1000000;
         }
     }
 
