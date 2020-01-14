@@ -139,9 +139,11 @@ public strictfp class RobotPlayer {
         //If soup capacity is full, return to HQ to deposit soup
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             moveTowards(HQloc);
+        }else{
+            moveTowards(findSoup());
         }
 
-        tryMove(randomDirection());
+
 
     }
 
@@ -198,52 +200,25 @@ public strictfp class RobotPlayer {
         return directions[(int) (Math.random() * directions.length)];
     }
 
-    static MapLocation findBestSoup() throws GameActionException {
+
+    static MapLocation findSoup() throws GameActionException{
         // Scan tiles for soup
         MapLocation bestTile = null;
+        MapLocation currentLocation = rc.getLocation();
         int maxSoup = 0;
-        int xChange = 1;
-        int yChange = 0;
-        for (int scanLevel = 6; scanLevel < 7; scanLevel++) {
-            int x = rc.getLocation().x - scanLevel;
-            int y = rc.getLocation().y + scanLevel;
-            for (int wall = 0; wall < 4; wall++) {
-                if (wall == 0) {
-                    xChange = 1;
-                    yChange = 0;
-                } else if (wall == 1) {
-                    xChange = 0;
-                    yChange = -1;
-                } else if (wall == 2) {
-                    xChange = -1;
-                    yChange = 0;
-                } else if (wall == 3) {
-                    xChange = 0;
-                    yChange = 1;
-                }
-                for (int e = 0; e < (scanLevel * 2); e++) {
-                    if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
-                        bestTile = new MapLocation(x, y);
-                    }
-                    x += xChange;
-                    y += yChange;
+
+        for(xOffset=-5;xOffset<=5;x++){
+            for(yOffset=-5;yOffset<=5;y++){
+                MapLocation scanLocation = new MapLocation(currentLocation.x+xOffset,currentLocation.y+yOffset);
+                int soupContent = trySenseSoup(scanLocation);
+                if(soupContent>maxSoup){
+                    maxSoup = soupContent;
+                    bestTile = scanLocation;
                 }
             }
         }
         return bestTile;
     }
-
-//    static MapLocation findSoup() throws GameActionException{
-//
-//        MapLocation[] locs = new MapLocation[]{new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5),
-//                                                new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5)
-//                                                new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5)
-//                                                new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5)};
-//        for( MapLocation loc : locs ){
-//
-//        }
-//
-//    }
 
     static Direction dirTo(MapLocation loc) throws GameActionException {
         return rc.getLocation().directionTo(loc);
