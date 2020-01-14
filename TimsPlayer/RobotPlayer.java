@@ -215,16 +215,21 @@ public strictfp class RobotPlayer {
     static MapLocation findSoup() throws GameActionException {
         // Scan tiles for soup
         MapLocation bestTile = null;
+        boolean foundSoup = false;
         MapLocation currentLocation = rc.getLocation();
         int maxSoup = 0;
 
         for (int xOffset = -5; xOffset <= 5; xOffset++) {
-            for (int yOffset = -5; yOffset <= 5; yOffset++) {
-                MapLocation scanLocation = new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset);
-                int soupContent = trySenseSoup(scanLocation);
-                if (soupContent > maxSoup) {
-                    maxSoup = soupContent;
-                    bestTile = scanLocation;
+            if (foundSoup == false) {
+                for (int yOffset = -5; yOffset <= 5; yOffset++) {
+                    MapLocation scanLocation = new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset);
+                    int soupContent = trySenseSoup(scanLocation);
+                    if (soupContent > maxSoup) {
+                        maxSoup = soupContent;
+                        bestTile = scanLocation;
+                        foundSoup = true;
+                        break;
+                    }
                 }
             }
         }
@@ -361,7 +366,7 @@ public strictfp class RobotPlayer {
         }
     }
 
-    static void tryBlockchain() throws GameActionException {
+    static void tryChainSoup() throws GameActionException {
         if (turnCount < 3) {
             int[] message = new int[7];
             for (int i = 0; i < 7; i++) {
