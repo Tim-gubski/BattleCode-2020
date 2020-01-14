@@ -116,12 +116,22 @@ public strictfp class RobotPlayer {
                     isSchool = true;
                 }
             }
-            if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
-                tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
-            }
         }
 
         //If school doesn't exist and robot is in a set radius around the HQ, create a design school
+        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
+            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
+        }
+
+
+        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
+            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
+        }
+
+
+        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
+            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
+        }
 
 
         //Try refining in all directions
@@ -140,9 +150,11 @@ public strictfp class RobotPlayer {
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             moveTowards(HQloc);
         }
+
         tryMove(randomDirection());
 
     }
+
 
     static void runRefinery() throws GameActionException {
         // System.out.println("Pollution: " + rc.sensePollution(rc.getLocation()));
@@ -196,12 +208,12 @@ public strictfp class RobotPlayer {
         return directions[(int) (Math.random() * directions.length)];
     }
 
-    static MapLocation findBestSoup() throws GameActionException{
+    static MapLocation findBestSoup() throws GameActionException {
         // Scan tiles for soup
         MapLocation bestTile = null;
         int maxSoup = 0;
-        int xChange=1;
-        int yChange=0;
+        int xChange = 1;
+        int yChange = 0;
         for (int scanLevel = 6; scanLevel < 7; scanLevel++) {
             int x = rc.getLocation().x - scanLevel;
             int y = rc.getLocation().y + scanLevel;
@@ -215,9 +227,9 @@ public strictfp class RobotPlayer {
                 } else if (wall == 2) {
                     xChange = -1;
                     yChange = 0;
-                }else if (wall==3){
-                    xChange=0;
-                    yChange=1;
+                } else if (wall == 3) {
+                    xChange = 0;
+                    yChange = 1;
                 }
                 for (int e = 0; e < (scanLevel * 2); e++) {
                     if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
@@ -303,6 +315,8 @@ public strictfp class RobotPlayer {
             return false;
         }
     }
+
+
     static boolean moveTowards(Direction dir) throws GameActionException {
         if (tryMove(dir)) {
             return true;
@@ -358,6 +372,5 @@ public strictfp class RobotPlayer {
                 rc.submitTransaction(message, 10);
             }
         }
-        // System.out.println(rc.getRoundMessages(turnCount-1));
     }
 }
