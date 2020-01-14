@@ -19,6 +19,8 @@ public strictfp class RobotPlayer {
 
     static int turnCount;
     static int minerCount;
+    static int landscaperCount;
+    static int droneCount;
     static MapLocation HQloc;
     static boolean isSchool = false;
     /**
@@ -123,7 +125,10 @@ public strictfp class RobotPlayer {
 
     static void runDesignSchool() throws GameActionException {
         //Build a landscaper in the closest possible direction to the HQ
+        int landscaperLimit = 5; // This is a temporary landscaper limit.
+        if (landscaperCount < landscaperLimit) {
         tryBuild(RobotType.LANDSCAPER,dirTo(HQloc));
+        }
     }
 
     static void runFulfillmentCenter() throws GameActionException {
