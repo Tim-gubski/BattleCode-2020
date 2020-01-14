@@ -119,11 +119,17 @@ public strictfp class RobotPlayer {
         }
 
         //If school doesn't exist and robot is in a set radius around the HQ, create a design school
+<<<<<<< HEAD
 
         if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
             tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
         }
 
+=======
+        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
+            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
+        }
+>>>>>>> parent of 0386265... Scanning but Byte OverFlow
 
         //Try refining in all directions
         for (Direction dir : directions) {
@@ -144,6 +150,7 @@ public strictfp class RobotPlayer {
         // Scan tiles for soup
         MapLocation bestTile = null;
         int maxSoup = 0;
+<<<<<<< HEAD
 
         int xChange = 1;
         int yChange = 0;
@@ -151,6 +158,10 @@ public strictfp class RobotPlayer {
         int xChange=1;
         int yChange=0;
 
+=======
+        int xChange=1;
+        int yChange=0;
+>>>>>>> parent of 0386265... Scanning but Byte OverFlow
         for (int scanLevel = 2; scanLevel < 7; scanLevel++) {
             int x = rc.getLocation().x - scanLevel;
             int y = rc.getLocation().y + scanLevel;
@@ -164,6 +175,7 @@ public strictfp class RobotPlayer {
                 } else if (wall == 2) {
                     xChange = -1;
                     yChange = 0;
+<<<<<<< HEAD
 
                 } else if (wall == 3) {
                     xChange = 0;
@@ -173,6 +185,11 @@ public strictfp class RobotPlayer {
                     xChange=0;
                     yChange=1;
 
+=======
+                }else if (wall==3){
+                    xChange=0;
+                    yChange=1;
+>>>>>>> parent of 0386265... Scanning but Byte OverFlow
                 }
                 for (int e = 0; e < (scanLevel * 2); e++) {
                     if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
@@ -183,6 +200,7 @@ public strictfp class RobotPlayer {
                 }
 
             }
+<<<<<<< HEAD
 
             //        tryMove(randomDirection());
             else if(rc.isReady()) {
@@ -194,6 +212,9 @@ public strictfp class RobotPlayer {
 
 
         }
+=======
+        }
+>>>>>>> parent of 0386265... Scanning but Byte OverFlow
         rc.setIndicatorDot(bestTile, 255, 0, 0);
 
     }
@@ -251,6 +272,7 @@ public strictfp class RobotPlayer {
         return directions[(int) (Math.random() * directions.length)];
     }
 
+<<<<<<< HEAD
     static MapLocation findBestSoup() throws GameActionException {
         // Scan tiles for soup
         MapLocation bestTile = null;
@@ -286,6 +308,8 @@ public strictfp class RobotPlayer {
         return bestTile;
     }
 
+=======
+>>>>>>> parent of 0386265... Scanning but Byte OverFlow
     static Direction dirTo(MapLocation loc) throws GameActionException {
         return rc.getLocation().directionTo(loc);
     }
@@ -346,6 +370,7 @@ public strictfp class RobotPlayer {
             return false;
         }
     }
+<<<<<<< HEAD
 
 
     static boolean moveTowards(Direction dir) throws GameActionException {
@@ -359,6 +384,8 @@ public strictfp class RobotPlayer {
             return false;
         }
     }
+=======
+>>>>>>> parent of 0386265... Scanning but Byte OverFlow
 
     static boolean tryBuild(RobotType type, Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canBuildRobot(type, dir)) {
