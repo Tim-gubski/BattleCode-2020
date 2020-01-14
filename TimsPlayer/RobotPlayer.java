@@ -116,12 +116,13 @@ public strictfp class RobotPlayer {
                     isSchool = true;
                 }
             }
+            if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
+                tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
+            }
         }
 
         //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
-            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
-        }
+
 
         //Try refining in all directions
         for (Direction dir : directions) {
@@ -139,40 +140,11 @@ public strictfp class RobotPlayer {
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             moveTowards(HQloc);
         }
-        // Scan tiles for soup
-        MapLocation bestTile = null;
-        int maxSoup = 0;
-        int xChange=1;
-        int yChange=0;
-        for (int scanLevel = 2; scanLevel < 7; scanLevel++) {
-            int x = rc.getLocation().x - scanLevel;
-            int y = rc.getLocation().y + scanLevel;
-            for (int wall = 0; wall < 4; wall++) {
-                if (wall == 0) {
-                    xChange = 1;
-                    yChange = 0;
-                } else if (wall == 1) {
-                    xChange = 0;
-                    yChange = -1;
-                } else if (wall == 2) {
-                    xChange = -1;
-                    yChange = 0;
-                }else if (wall==3){
-                    xChange=0;
-                    yChange=1;
-                }
-                for (int e = 0; e < (scanLevel * 2); e++) {
-                    if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
-                        bestTile = new MapLocation(x, y);
-                    }
-                    x += xChange;
-                    y += yChange;
-                }
-
-            }
+//        tryMove(randomDirection());
+        else if(rc.isReady()) {
+            Direction dirToSoup = dirTo(findBestSoup());
+            moveTowards(dirToSoup);
         }
-        rc.setIndicatorDot(bestTile, 255, 0, 0);
-
     }
 
     static void runRefinery() throws GameActionException {
@@ -225,6 +197,41 @@ public strictfp class RobotPlayer {
     // HELPFUL METHODS!!!
     static Direction randomDirection() {
         return directions[(int) (Math.random() * directions.length)];
+    }
+
+    static MapLocation findBestSoup() throws GameActionException{
+        // Scan tiles for soup
+        MapLocation bestTile = null;
+        int maxSoup = 0;
+        int xChange=1;
+        int yChange=0;
+        for (int scanLevel = 6; scanLevel < 7; scanLevel++) {
+            int x = rc.getLocation().x - scanLevel;
+            int y = rc.getLocation().y + scanLevel;
+            for (int wall = 0; wall < 4; wall++) {
+                if (wall == 0) {
+                    xChange = 1;
+                    yChange = 0;
+                } else if (wall == 1) {
+                    xChange = 0;
+                    yChange = -1;
+                } else if (wall == 2) {
+                    xChange = -1;
+                    yChange = 0;
+                }else if (wall==3){
+                    xChange=0;
+                    yChange=1;
+                }
+                for (int e = 0; e < (scanLevel * 2); e++) {
+                    if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
+                        bestTile = new MapLocation(x, y);
+                    }
+                    x += xChange;
+                    y += yChange;
+                }
+            }
+        }
+        return bestTile;
     }
 
     static Direction dirTo(MapLocation loc) throws GameActionException {
@@ -282,6 +289,17 @@ public strictfp class RobotPlayer {
         } else if (tryMove(dirTo(loc).rotateRight())) {
             return true;
         } else if (tryMove(dirTo(loc).rotateLeft())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    static boolean moveTowards(Direction dir) throws GameActionException {
+        if (tryMove(dir)) {
+            return true;
+        } else if (tryMove(dir.rotateRight())) {
+            return true;
+        } else if (tryMove(dir.rotateLeft())) {
             return true;
         } else {
             return false;
