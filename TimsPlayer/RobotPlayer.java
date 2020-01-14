@@ -124,16 +124,6 @@ public strictfp class RobotPlayer {
         }
 
 
-        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
-            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
-        }
-
-
-        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
-            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
-        }
-
-
         //Try refining in all directions
         for (Direction dir : directions) {
             if (tryRefine(dir)) {
