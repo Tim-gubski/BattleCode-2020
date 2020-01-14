@@ -119,18 +119,15 @@ public strictfp class RobotPlayer {
         }
 
         //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-<<<<<<< HEAD
-<<<<<<< HEAD
 
         if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
             tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
         }
 
-=======
         if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
             tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
         }
->>>>>>> parent of 0386265... Scanning but Byte OverFlow
+
 =======
         if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
             tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
@@ -409,10 +406,6 @@ public strictfp class RobotPlayer {
             return false;
         }
     }
-=======
->>>>>>> parent of 0386265... Scanning but Byte OverFlow
-=======
->>>>>>> parent of 0386265... Scanning but Byte OverFlow
 
     static boolean tryBuild(RobotType type, Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canBuildRobot(type, dir)) {
