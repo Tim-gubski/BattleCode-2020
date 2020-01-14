@@ -140,11 +140,8 @@ public strictfp class RobotPlayer {
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             moveTowards(HQloc);
         }
-//        tryMove(randomDirection());
-        else if(rc.isReady()) {
-            Direction dirToSoup = dirTo(findBestSoup());
-            moveTowards(dirToSoup);
-        }
+        tryMove(randomDirection());
+
     }
 
     static void runRefinery() throws GameActionException {
@@ -233,6 +230,18 @@ public strictfp class RobotPlayer {
         }
         return bestTile;
     }
+
+//    static MapLocation findSoup() throws GameActionException{
+//
+//        MapLocation[] locs = new MapLocation[]{new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5),
+//                                                new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5)
+//                                                new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5)
+//                                                new MapLocation(rc.getLocation.x-5,rc.getLocation.y+5)};
+//        for( MapLocation loc : locs ){
+//
+//        }
+//
+//    }
 
     static Direction dirTo(MapLocation loc) throws GameActionException {
         return rc.getLocation().directionTo(loc);
