@@ -123,7 +123,6 @@ public strictfp class RobotPlayer {
             tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
         }
 
-
         //Try refining in all directions
         for (Direction dir : directions) {
             if (tryRefine(dir)) {
@@ -139,14 +138,11 @@ public strictfp class RobotPlayer {
         //If soup capacity is full, return to HQ to deposit soup
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             moveTowards(HQloc);
-        }else{
+        } else {
             moveTowards(findSoup());
         }
 
-
-
     }
-
 
     static void runRefinery() throws GameActionException {
         // System.out.println("Pollution: " + rc.sensePollution(rc.getLocation()));
@@ -201,18 +197,17 @@ public strictfp class RobotPlayer {
         return directions[(int) (Math.random() * directions.length)];
     }
 
-
-    static MapLocation findSoup() throws GameActionException{
+    static MapLocation findSoup() throws GameActionException {
         // Scan tiles for soup
         MapLocation bestTile = null;
         MapLocation currentLocation = rc.getLocation();
         int maxSoup = 0;
 
-        for(xOffset=-5;xOffset<=5;x++){
-            for(yOffset=-5;yOffset<=5;y++){
-                MapLocation scanLocation = new MapLocation(currentLocation.x+xOffset,currentLocation.y+yOffset);
+        for (int xOffset = -5; xOffset <= 5; xOffset++) {
+            for (int yOffset = -5; yOffset <= 5; yOffset++) {
+                MapLocation scanLocation = new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset);
                 int soupContent = trySenseSoup(scanLocation);
-                if(soupContent>maxSoup){
+                if (soupContent > maxSoup) {
                     maxSoup = soupContent;
                     bestTile = scanLocation;
                 }
@@ -281,7 +276,6 @@ public strictfp class RobotPlayer {
             return false;
         }
     }
-
 
     static boolean moveTowards(Direction dir) throws GameActionException {
         if (tryMove(dir)) {
