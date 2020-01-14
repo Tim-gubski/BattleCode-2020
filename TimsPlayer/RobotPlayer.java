@@ -142,8 +142,8 @@ public strictfp class RobotPlayer {
         // Scan tiles for soup
         MapLocation bestTile = null;
         int maxSoup = 0;
-        int xChange=1;
-        int yChange=0;
+        int xChange = 1;
+        int yChange = 0;
         for (int scanLevel = 2; scanLevel < 7; scanLevel++) {
             int x = rc.getLocation().x - scanLevel;
             int y = rc.getLocation().y + scanLevel;
@@ -157,9 +157,9 @@ public strictfp class RobotPlayer {
                 } else if (wall == 2) {
                     xChange = -1;
                     yChange = 0;
-                }else if (wall==3){
-                    xChange=0;
-                    yChange=1;
+                } else if (wall == 3) {
+                    xChange = 0;
+                    yChange = 1;
                 }
                 for (int e = 0; e < (scanLevel * 2); e++) {
                     if (trySenseSoup(new MapLocation(x, y)) > maxSoup) {
