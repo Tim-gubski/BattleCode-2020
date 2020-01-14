@@ -161,6 +161,7 @@ public strictfp class RobotPlayer {
         int landscaperLimit = 3; // This is a temporary landscaper limit.
         if (landscaperCount < landscaperLimit) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(HQloc))) {
+                tryBuild(RobotType.LANDSCAPER, dirTo(HQloc));
                 landscaperCount++;
             }
         }
