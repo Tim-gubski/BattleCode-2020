@@ -131,7 +131,7 @@ public strictfp class RobotPlayer {
     }
 
     static void runLandscaper() throws GameActionException {
-
+        tryMove(randomDirection())
     }
 
     static void runDeliveryDrone() throws GameActionException {
