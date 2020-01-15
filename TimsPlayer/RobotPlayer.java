@@ -115,7 +115,7 @@ public strictfp class RobotPlayer {
 
     static void runHQ() throws GameActionException {
         if (minerCount < 5) {
-            if (tryBuild(RobotType.MINER, findSoup())) {
+            if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
                 minerCount++;
             }
         }
@@ -132,48 +132,44 @@ public strictfp class RobotPlayer {
                 }
             }
             //If Refinery doesn't exist and robot is in a set radius around the HQ, create a Refinery
-            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isRefinery) {
+            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isRefinery && isSchool && isCenter) {
                 tryBuild(RobotType.REFINERY, dirTo(hqLoc));
             }
         }
 
 //        VAPES!!!
-        if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 98 && rc.getRoundNum()>350) {
+        if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 98) {
             tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
-        }
-        if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && rc.getRoundNum()<350) {
-            tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.NORTH));
-            tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.SOUTH));
         }
 
         //Check if design school has been created
-        if (!isCenter) {
-            RobotInfo[] robots = rc.senseNearbyRobots();
-            for (RobotInfo robot : robots) {
-                if (robot.type == RobotType.FULFILLMENT_CENTER && robot.team == rc.getTeam()) {
-                    isCenter = true;
-                    schLoc = robot.location;
-                }
-            }
-            //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-            if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && !isCenter && rc.getRoundNum()>300) {
-                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.NORTH));
-                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.EAST));
-                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.SOUTH));
-                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.WEST));
-            }
-        }
-        //Check if fulfillment center has been created
         if (!isSchool) {
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.DESIGN_SCHOOL && robot.team == rc.getTeam()) {
                     isSchool = true;
+                    schLoc = robot.location;
+                }
+            }
+            //If school doesn't exist and robot is in a set radius around the HQ, create a design school
+            if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && !isSchool && rc.getRoundNum()>300) {
+                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.NORTH));
+                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.EAST));
+                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.SOUTH));
+                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.WEST));
+            }
+        }
+        //Check if fulfillment center has been created
+        if (!isCenter) {
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for (RobotInfo robot : robots) {
+                if (robot.type == RobotType.FULFILLMENT_CENTER && robot.team == rc.getTeam()) {
+                    isCenter = true;
                 }
             }
             //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-            if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && !isSchool && rc.getRoundNum()>300) {
-                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(hqLoc.directionTo(schLoc).opposite()));
+            if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && !isCenter && rc.getRoundNum()>300) {
+                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(hqLoc.directionTo(schLoc).opposite()));
             }
         }
 
@@ -190,12 +186,6 @@ public strictfp class RobotPlayer {
             if (tryMine(dir)) {
                 System.out.println("I mined soup! " + rc.getSoupCarrying());
             }
-        }
-        if(rc.getTeamSoup()>1000 && rc.getRoundNum()<300){
-            moveTowards(hqLoc);
-        }
-        if(rc.getTeamSoup()>300 && rc.getRoundNum()>300 && (!isSchool || !isCenter)){
-            moveTowards(hqLoc);
         }
         
         //If soup capacity is full, return to HQ to deposit soup
@@ -225,7 +215,7 @@ public strictfp class RobotPlayer {
     static void runDesignSchool() throws GameActionException {
 //        Build a landscaper in the closest possible direction to the HQ
         int landscaperLimit = 20; // This is a temporary landscaper limit.
-        if (landscaperCount < landscaperLimit && rc.getRoundNum()>350) {
+        if (landscaperCount < landscaperLimit) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
                 landscaperCount++;
             }
