@@ -24,8 +24,8 @@ public strictfp class RobotPlayer {
     static int minerCount;
     static int landscaperCount;
     static int droneCount;
-    static int mapHeight = rc.getMapHeight();
-    static int mapWidth = rc.getMapWidth();
+    static int mapHeight;
+    static int mapWidth;
     static int hqX1;
     static int hqX2;
     static int hqX3;
@@ -49,7 +49,8 @@ public strictfp class RobotPlayer {
         // This is the RobotController object. You use it to perform actions from this robot,
         // and to get information on its current status.
         RobotPlayer.rc = rc;
-
+        mapHeight = rc.getMapHeight();
+        mapWidth = rc.getMapWidth();
         turnCount = 0;
 
         if (hqLoc == null) {
@@ -172,9 +173,9 @@ public strictfp class RobotPlayer {
                     isCenter = true;
                 }
             }
-            //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
+            //If Refinery doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
             if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isCenter) {
-                tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
+                tryBuild(RobotType.REFINERY, dirTo(hqLoc));
             }
         }
 
