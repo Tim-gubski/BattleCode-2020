@@ -27,6 +27,7 @@ public strictfp class RobotPlayer {
     static MapLocation hqLoc;
     static boolean isSchool = false;
     static boolean isCenter = false;
+    static boolean isRefinery = false;
     static boolean enemyHQKnown = false;
 
     /**
@@ -136,7 +137,18 @@ public strictfp class RobotPlayer {
                 tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
             }
         }
-
+        if (!isRefinery) {
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for (RobotInfo robot : robots) {
+                if (robot.type == RobotType.REFINERY && robot.team == rc.getTeam()) {
+                    isCenter = true;
+                }
+            }
+            //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
+            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isCenter) {
+                tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
+            }
+        }
 
 
         //Try refining in all directions
@@ -195,16 +207,16 @@ public strictfp class RobotPlayer {
         int lowestElevation = 100000;
         MapLocation bestTile = null;
         tryDigDirt(dirTo(hqLoc).opposite());
-//        for (Direction dir : directions) {
-//            if(rc.trySenseElevation(hqLoc.add(dir)) < lowestElevation){
-//                lowestElevation = rc.trySenseElevation(hqLoc.add(dir));
-//                bestTile = hqLoc.add(dir);
-//            }
-//        }
-//        if (tryDropDirt(bestTile)) {
-//        } else {
-//            moveTowards(bestTile);
-//        }
+        for (Direction dir : directions) {
+            if(trySenseElevation(hqLoc.add(dir)) <= lowestElevation){
+                lowestElevation = trySenseElevation(hqLoc.add(dir));
+                bestTile = hqLoc.add(dir);
+            }
+        }
+        if (tryDropDirt(bestTile)) {
+        } else {
+            moveTowards(bestTile);
+        }
 
     }
 
@@ -331,13 +343,9 @@ public strictfp class RobotPlayer {
     }
 
     static boolean moveTowards(MapLocation loc) throws GameActionException {
-        if (tryMove(dirTo(loc))) {
+        if(moveTowards(dirTo(loc))){
             return true;
-        } else if (tryMove(dirTo(loc).rotateRight())) {
-            return true;
-        } else if (tryMove(dirTo(loc).rotateLeft())) {
-            return true;
-        } else {
+        }else{
             return false;
         }
     }
@@ -348,6 +356,10 @@ public strictfp class RobotPlayer {
         } else if (tryMove(dir.rotateRight())) {
             return true;
         } else if (tryMove(dir.rotateLeft())) {
+            return true;
+        } else if (tryMove(dir.rotateRight().rotateRight())) {
+            return true;
+        } else if (tryMove(dir.rotateLeft().rotateLeft())) {
             return true;
         } else {
             return false;
@@ -379,7 +391,7 @@ public strictfp class RobotPlayer {
     }
 
     static boolean tryDropDirt(MapLocation loc) throws GameActionException {
-        if (rc.isReady() && rc.canDepositDirt(dirTo(loc))) {
+        if (rc.isReady() && rc.canDepositDirt(dirTo(loc)) && rc.getLocation().isAdjacentTo(loc)) {
             rc.depositDirt(dirTo(loc));
             return true;
         } else {
