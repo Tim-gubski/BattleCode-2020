@@ -205,7 +205,6 @@ public strictfp class RobotPlayer {
         
         
         if (moveTowards(findSoup())) {
-            
         } else {
             tryMove(randomDirection());
         }
@@ -223,7 +222,7 @@ public strictfp class RobotPlayer {
 
     static void runDesignSchool() throws GameActionException {
 //        Build a landscaper in the closest possible direction to the HQ
-        int landscaperLimit = 4; // This is a temporary landscaper limit.
+        int landscaperLimit = 20; // This is a temporary landscaper limit.
         if (landscaperCount < landscaperLimit) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
                 landscaperCount++;
@@ -267,6 +266,9 @@ public strictfp class RobotPlayer {
         }
         //if inner ring is not filled go get a spot
         if(!rc.getLocation().isAdjacentTo(hqLoc) && !layerFilled) {
+            moveTowards(hqLoc);
+        }
+        if(rc.getLocation().isAdjacentTo(hqLoc) && layerFilled) {
             moveTowards(hqLoc);
         }
 
