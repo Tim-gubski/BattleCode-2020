@@ -118,13 +118,11 @@ public strictfp class RobotPlayer {
                     isSchool = true;
                 }
             }
+            //If school doesn't exist and robot is in a set radius around the HQ, create a design school
+            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isSchool) {
+                tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
+            }
         }
-
-        //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-        if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isSchool) {
-            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
-        }
-
         //Check if fulfillment center has been created
         if (!isCenter) {
             RobotInfo[] robots = rc.senseNearbyRobots();
@@ -133,12 +131,13 @@ public strictfp class RobotPlayer {
                     isCenter = true;
                 }
             }
+            //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
+            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isCenter) {
+                tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
+            }
         }
 
-        //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-        if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isCenter) {
-            tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
-        }
+
 
         //Try refining in all directions
         for (Direction dir : directions) {
