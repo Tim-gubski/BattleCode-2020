@@ -24,11 +24,20 @@ public strictfp class RobotPlayer {
     static int minerCount;
     static int landscaperCount;
     static int droneCount;
+    static int mapHeight = rc.getMapHeight();
+    static int mapWidth = rc.getMapWidth();
+    static int hqX1;
+    static int hqX2;
+    static int hqX3;
+    static int hqY1;
+    static int hqY2;
+    static int hqY3;
     static MapLocation hqLoc;
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
     static boolean enemyHQKnown = false;
+    static boolean landscaperDeployed = false;
 
     /**
      * run() is the method that is called when a robot is instantiated in the
@@ -51,6 +60,25 @@ public strictfp class RobotPlayer {
                 }
             }
         }
+
+        if (hqLoc.x < mapWidth / 2) {
+            hqX1 = mapWidth / 2 + hqLoc.x;
+            
+        } else if (hqLoc.x > mapWidth / 2) {
+            hqX1 = mapWidth - hqLoc.x;
+        } else {
+            hqX1 = mapWidth / 2;
+        }
+        
+        if (hqLoc.y < mapHeight / 2) {
+            hqY1 = mapHeight / 2 + hqLoc.y;
+            
+        } else if (hqLoc.y > mapHeight / 2) {
+            hqY1 = mapHeight - hqLoc.y;
+        } else {
+            hqY1 = mapHeight / 2;
+        }
+
         //System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
             turnCount += 1;
@@ -254,7 +282,7 @@ public strictfp class RobotPlayer {
             }
         } else if (enemyHQKnown) {
             tryMove(dirTo(enemyHQ));
-            
+
         } else {
             tryMove(randomDirection());
         }
