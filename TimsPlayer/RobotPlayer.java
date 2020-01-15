@@ -138,10 +138,10 @@ public strictfp class RobotPlayer {
         }
 
 //        VAPES!!!
-        if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 98 && rc.getRoundNum()>300) {
+        if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 98 && rc.getRoundNum()>350) {
             tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
         }
-        if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && rc.getRoundNum()<300) {
+        if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && rc.getRoundNum()<350) {
             tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.NORTH));
             tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.SOUTH));
         }
@@ -194,7 +194,7 @@ public strictfp class RobotPlayer {
         if(rc.getTeamSoup()>1000 && rc.getRoundNum()<300){
             moveTowards(hqLoc);
         }
-        if(rc.getTeamSoup()>150 && rc.getRoundNum()>300 && (!isSchool || !isCenter)){
+        if(rc.getTeamSoup()>300 && rc.getRoundNum()>300 && (!isSchool || !isCenter)){
             moveTowards(hqLoc);
         }
         
@@ -206,8 +206,6 @@ public strictfp class RobotPlayer {
                 moveTowards(hqLoc);
             }
         }
-        
-        
         if (moveTowards(findSoup())) {
         } else {
             tryMove(randomDirection());
@@ -227,7 +225,7 @@ public strictfp class RobotPlayer {
     static void runDesignSchool() throws GameActionException {
 //        Build a landscaper in the closest possible direction to the HQ
         int landscaperLimit = 20; // This is a temporary landscaper limit.
-        if (landscaperCount < landscaperLimit) {
+        if (landscaperCount < landscaperLimit && rc.getRoundNum()>350) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
                 landscaperCount++;
             }
