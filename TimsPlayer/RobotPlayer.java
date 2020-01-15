@@ -203,6 +203,7 @@ public strictfp class RobotPlayer {
             }
         }
 
+
     }
 
     static void runRefinery() throws GameActionException {
