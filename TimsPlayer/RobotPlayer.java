@@ -214,7 +214,7 @@ public strictfp class RobotPlayer {
 
     static void runDesignSchool() throws GameActionException {
 //        Build a landscaper in the closest possible direction to the HQ
-        int landscaperLimit = 20; // This is a temporary landscaper limit.
+        int landscaperLimit = 21; // This is a temporary landscaper limit.
         if (landscaperCount < landscaperLimit) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
                 landscaperCount++;
@@ -265,7 +265,7 @@ public strictfp class RobotPlayer {
         if (radiusTo(hqLoc) < 3 || radiusTo(hqLoc) > 8 && layerFilled) {
             moveTowards(dirTo(hqLoc));
         }
-        if (rc.getLocation().isAdjacentTo(schLoc)) {
+        if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 420) {
             moveTowards(dirTo(schLoc).opposite());
         }
 
