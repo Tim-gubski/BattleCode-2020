@@ -50,7 +50,7 @@ public strictfp class RobotPlayer {
         RobotPlayer.rc = rc;
 
         turnCount = 0;
-        
+
         if (hqLoc == null) {
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
@@ -59,8 +59,25 @@ public strictfp class RobotPlayer {
                 }
             }
         }
+
+        if (hqLoc.x < mapWidth / 2) {
+            hqX1 = mapWidth / 2 + hqLoc.x;
+            
+        } else if (hqLoc.x > mapWidth / 2) {
+            hqX1 = mapWidth - hqLoc.x;
+        } else {
+            hqX1 = mapWidth / 2;
+        }
         
-        
+        if (hqLoc.y < mapHeight / 2) {
+            hqY1 = mapHeight / 2 + hqLoc.y;
+            
+        } else if (hqLoc.y > mapHeight / 2) {
+            hqY1 = mapHeight - hqLoc.y;
+        } else {
+            hqY1 = mapHeight / 2;
+        }
+
         //System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
             turnCount += 1;
@@ -147,8 +164,6 @@ public strictfp class RobotPlayer {
                 tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
             }
         }
-
-
 
         //Try refining in all directions
         for (Direction dir : directions) {
@@ -253,7 +268,7 @@ public strictfp class RobotPlayer {
             }
         } else if (enemyHQKnown) {
             tryMove(dirTo(enemyHQ));
-            
+
         } else {
             tryMove(randomDirection());
         }
