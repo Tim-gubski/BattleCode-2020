@@ -33,6 +33,7 @@ public strictfp class RobotPlayer {
     static int hqY2;
     static int hqY3;
     static MapLocation hqLoc;
+    static MapLocation refLoc;
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
@@ -61,25 +62,6 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-
-//        if (hqLoc.x < mapWidth / 2) {
-//            hqX1 = mapWidth / 2 + hqLoc.x;
-//            
-//        } else if (hqLoc.x > mapWidth / 2) {
-//            hqX1 = mapWidth - hqLoc.x;
-//        } else {
-//            hqX1 = mapWidth / 2;
-//        }
-//        
-//        if (hqLoc.y < mapHeight / 2) {
-//            hqY1 = mapHeight / 2 + hqLoc.y;
-//            
-//        } else if (hqLoc.y > mapHeight / 2) {
-//            hqY1 = mapHeight - hqLoc.y;
-//        } else {
-//            hqY1 = mapHeight / 2;
-//        }
-
         //System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
             turnCount += 1;
@@ -170,11 +152,12 @@ public strictfp class RobotPlayer {
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.REFINERY && robot.team == rc.getTeam()) {
-                    isCenter = true;
+                    isRefinery = true;
+                    refLoc = robot.location;
                 }
             }
             //If Refinery doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isCenter) {
+            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isRefinery) {
                 tryBuild(RobotType.REFINERY, dirTo(hqLoc));
             }
         }
@@ -194,7 +177,11 @@ public strictfp class RobotPlayer {
         }
         //If soup capacity is full, return to HQ to deposit soup
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
-            moveTowards(hqLoc);
+            if(isRefinery){
+                moveTowards(refLoc);
+            }else {
+                moveTowards(hqLoc);
+            }
         }
 //        else {
 //            tryMove(dirTo(findSoup()));
@@ -223,13 +210,13 @@ public strictfp class RobotPlayer {
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-        int droneLimit = 3; // This is a temporary landscaper limit.
-        if (droneCount < droneLimit) {
-            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
-                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
-                droneCount++;
-            }
-        }
+//        int droneLimit = 3; // This is a temporary landscaper limit.
+//        if (droneCount < droneLimit) {
+//            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+//                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
+//                droneCount++;
+//            }
+//        }
     }
 
     static void runLandscaper() throws GameActionException {
