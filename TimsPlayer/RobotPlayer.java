@@ -272,8 +272,11 @@ public strictfp class RobotPlayer {
         }
         
         //if inner ring is filled get a spot around 2nd layer
-        if (radiusTo(hqLoc) != 4 && layerFilled) {
+        if (radiusTo(hqLoc) < 3 || radiusTo(hqLoc) > 8 && layerFilled) {
             moveTowards(dirTo(hqLoc));
+        }
+        if (rc.getLocation().isAdjacentTo(schLoc)) {
+            moveTowards(dirTo(schLoc).opposite());
         }
 
         }
