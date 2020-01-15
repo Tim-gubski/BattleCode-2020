@@ -205,9 +205,14 @@ public strictfp class RobotPlayer {
                 moveTowards(hqLoc);
             }
         }
-        else {
-            moveTowards(findSoup());
+        
+        
+        if (moveTowards(findSoup())) {
+            
+        } else {
+            tryMove(randomDirection());
         }
+
 
     }
 
