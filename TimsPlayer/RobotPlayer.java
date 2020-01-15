@@ -62,25 +62,6 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-
-//        if (hqLoc.x < mapWidth / 2) {
-//            hqX1 = mapWidth / 2 + hqLoc.x;
-//
-//        } else if (hqLoc.x > mapWidth / 2) {
-//            hqX1 = mapWidth - hqLoc.x;
-//        } else {
-//            hqX1 = mapWidth / 2;
-//        }
-//
-//        if (hqLoc.y < mapHeight / 2) {
-//            hqY1 = mapHeight / 2 + hqLoc.y;
-//
-//        } else if (hqLoc.y > mapHeight / 2) {
-//            hqY1 = mapHeight - hqLoc.y;
-//        } else {
-//            hqY1 = mapHeight / 2;
-//        }
-
         //System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
             turnCount += 1;
