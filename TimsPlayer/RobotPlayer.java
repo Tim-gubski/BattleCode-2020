@@ -24,10 +24,19 @@ public strictfp class RobotPlayer {
     static int minerCount;
     static int landscaperCount;
     static int droneCount;
+    static int mapHeight = rc.getMapHeight();
+    static int mapWidth = rc.getMapWidth();
+    static int hqX1;
+    static int hqX2;
+    static int hqX3;
+    static int hqY1;
+    static int hqY2;
+    static int hqY3;
     static MapLocation hqLoc;
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean enemyHQKnown = false;
+    static boolean landscaperDeployed = false;
 
     /**
      * run() is the method that is called when a robot is instantiated in the
@@ -41,7 +50,7 @@ public strictfp class RobotPlayer {
         RobotPlayer.rc = rc;
 
         turnCount = 0;
-
+        
         if (hqLoc == null) {
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
@@ -50,6 +59,8 @@ public strictfp class RobotPlayer {
                 }
             }
         }
+        
+        
         //System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
             turnCount += 1;
