@@ -197,6 +197,7 @@ public strictfp class RobotPlayer {
         if(rc.getTeamSoup()>150 && rc.getRoundNum()>300 && (!isSchool || !isCenter)){
             moveTowards(hqLoc);
         }
+        
         //If soup capacity is full, return to HQ to deposit soup
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             if(isRefinery){
@@ -271,8 +272,10 @@ public strictfp class RobotPlayer {
         if(!rc.getLocation().isAdjacentTo(hqLoc) && !layerFilled) {
             moveTowards(hqLoc);
         }
-        if(rc.getLocation().isAdjacentTo(hqLoc) && layerFilled) {
-            moveTowards(hqLoc);
+        
+        //if inner ring is filled get a spot around 2nd layer
+        if (radiusTo(hqLoc) != 4 && layerFilled) {
+            moveTowards(dirTo(hqLoc));
         }
 
         }
