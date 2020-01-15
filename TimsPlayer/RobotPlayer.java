@@ -19,13 +19,15 @@ public strictfp class RobotPlayer {
     static RobotType[] spawnedByMiner = {RobotType.REFINERY, RobotType.VAPORATOR, RobotType.DESIGN_SCHOOL,
         RobotType.FULFILLMENT_CENTER, RobotType.NET_GUN};
 
-    //Variable Initialization
+    //Variable Declaration/Initialization
     static int turnCount;
     static int minerCount;
     static int landscaperCount;
     static int droneCount;
-    static MapLocation HQloc;
+    static MapLocation hqLoc;
     static boolean isSchool = false;
+    static boolean isCenter = false;
+    static boolean enemyHQKnown = false;
 
     /**
      * run() is the method that is called when a robot is instantiated in the
@@ -40,11 +42,11 @@ public strictfp class RobotPlayer {
 
         turnCount = 0;
 
-        if (HQloc == null) {
+        if (hqLoc == null) {
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.HQ && robot.team == rc.getTeam()) {
-                    HQloc = robot.location;
+                    hqLoc = robot.location;
                 }
             }
         }
@@ -119,8 +121,23 @@ public strictfp class RobotPlayer {
         }
 
         //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-        if (radiusTo(HQloc) >= 25 && radiusTo(HQloc) <= 34 && !isSchool) {
-            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(HQloc));
+        if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isSchool) {
+            tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
+        }
+
+        //Check if fulfillment center has been created
+        if (!isCenter) {
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for (RobotInfo robot : robots) {
+                if (robot.type == RobotType.FULFILLMENT_CENTER && robot.team == rc.getTeam()) {
+                    isCenter = true;
+                }
+            }
+        }
+
+        //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
+        if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isCenter) {
+            tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
         }
 
         //Try refining in all directions
@@ -137,7 +154,7 @@ public strictfp class RobotPlayer {
         }
         //If soup capacity is full, return to HQ to deposit soup
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
-            moveTowards(HQloc);
+            moveTowards(hqLoc);
         }
 //        else {
 //            tryMove(dirTo(findSoup()));
@@ -158,47 +175,76 @@ public strictfp class RobotPlayer {
         //Build a landscaper in the closest possible direction to the HQ
         int landscaperLimit = 3; // This is a temporary landscaper limit.
         if (landscaperCount < landscaperLimit) {
-            if (tryBuild(RobotType.LANDSCAPER, dirTo(HQloc))) {
-                tryBuild(RobotType.LANDSCAPER, dirTo(HQloc));
+            if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
+                tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc));
                 landscaperCount++;
             }
         }
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-
+        int droneLimit = 3; // This is a temporary landscaper limit.
+        if (droneCount < droneLimit) {
+            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
+                droneCount++;
+            }
+        }
     }
 
     static void runLandscaper() throws GameActionException {
-        int lowestElevation = 10000;
+        int lowestElevation = 100000;
         MapLocation bestTile = null;
-        tryDigDirt(dirTo(HQloc).opposite());
-        for (Direction dir : directions) {
-            if(rc.trySenseElevation(HQloc.add(dir))<lowestElevation){
-                lowestElevation = rc.trySenseElevation(HQloc.add(dir));
-                bestTile=HQloc.add(dir);
-            }
-        }
-        if(tryDropDirt(bestTile)){
-        }else{
-            moveTowards(bestTile);
-        }
+        tryDigDirt(dirTo(hqLoc).opposite());
+//        for (Direction dir : directions) {
+//            if(rc.trySenseElevation(hqLoc.add(dir)) < lowestElevation){
+//                lowestElevation = rc.trySenseElevation(hqLoc.add(dir));
+//                bestTile = hqLoc.add(dir);
+//            }
+//        }
+//        if (tryDropDirt(bestTile)) {
+//        } else {
+//            moveTowards(bestTile);
+//        }
 
     }
 
     static void runDeliveryDrone() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
+        MapLocation enemyHQ = null;
+        int hqX;
+        int hqY;
+        if (!enemyHQKnown) {
+            RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
+            if (enemies.length > 0) {
+                for (RobotInfo robot : enemies) {
+                    if (robot.getType() == RobotType.HQ) {
+                        enemyHQ = robot.getLocation();
+                        hqX = enemyHQ.x;
+                        hqY = enemyHQ.y;
+                        tryChainHQ(hqX, hqY);
+                    }
+                }
+            }
+        }
         if (!rc.isCurrentlyHoldingUnit()) {
             // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-            RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
 
-            if (robots.length > 0) {
+            RobotInfo[] friendlies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, rc.getTeam());
+            if (friendlies.length > 0) {
                 // Pick up a first robot within range
-                rc.pickUpUnit(robots[0].getID());
-                System.out.println("I picked up " + robots[0].getID() + "!");
+                for (RobotInfo friendly : friendlies) {
+                    if (friendly.getType() == RobotType.LANDSCAPER) {
+                        rc.pickUpUnit(friendly.getID());
+                        System.out.println("I picked up " + friendlies[0].getID() + "!");
+                        break;
+                    }
+                }
             }
+        } else if (enemyHQKnown) {
+            tryMove(dirTo(enemyHQ));
+            
         } else {
-            // No close robots, so search for robots within sight radius
             tryMove(randomDirection());
         }
     }
@@ -332,16 +378,18 @@ public strictfp class RobotPlayer {
             return false;
         }
     }
+
     static boolean tryDropDirt(MapLocation loc) throws GameActionException {
-        if (rc.isReady() && rc.canDespoitDirst(dirTo(loc))) {
-            rc.dropDirt(dirTo(loc));
+        if (rc.isReady() && rc.canDepositDirt(dirTo(loc))) {
+            rc.depositDirt(dirTo(loc));
             return true;
         } else {
             return false;
         }
     }
+
     static boolean tryDigDirt(Direction dir) throws GameActionException {
-        if (rc.isReady() && rc.canDigDirst(dir)) {
+        if (rc.isReady() && rc.canDigDirt(dir)) {
             rc.digDirt(dir);
             return true;
         } else {
@@ -353,7 +401,7 @@ public strictfp class RobotPlayer {
         if (rc.isReady() && rc.canSenseLocation(loc)) {
             return rc.senseElevation(loc);
         } else {
-            return 1000000;
+            return 10000;
         }
     }
 
@@ -375,6 +423,27 @@ public strictfp class RobotPlayer {
             if (rc.canSubmitTransaction(message, 10)) {
                 rc.submitTransaction(message, 10);
             }
+        }
+    }
+
+    static void tryChainHQ(int x, int y) throws GameActionException {
+        int[] message = new int[7];
+        String msgString = null;
+        for (int i = 0; i < 7; i++) {
+            if (x < 10 && y < 10) {
+                msgString = "4200" + x + "0" + y;
+            } else if (x < 10 && y > 10) {
+                msgString = "4200" + x + y;
+            } else if (x > 10 && y < 10) {
+                msgString = "420" + x + "0" + y;
+            } else {
+                msgString = "420" + x + y;
+            }
+            message[i] = Integer.parseInt(msgString);
+        }
+        if (rc.canSubmitTransaction(message, rc.getTeamSoup()) && rc.getTeamSoup() > 150) {
+            rc.submitTransaction(message, rc.getTeamSoup());
+            enemyHQKnown = true;
         }
     }
 }
