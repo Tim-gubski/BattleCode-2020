@@ -183,9 +183,9 @@ public strictfp class RobotPlayer {
                 moveTowards(hqLoc);
             }
         }
-//        else {
-//            tryMove(dirTo(findSoup()));
-//        }
+        else {
+            tryMove(dirTo(findSoup()));
+        }
         tryMove(randomDirection());
 
     }
@@ -287,27 +287,16 @@ public strictfp class RobotPlayer {
 
     static MapLocation findSoup() throws GameActionException {
         // Scan tiles for soup
-        MapLocation bestTile = null;
-        boolean foundSoup = false;
         MapLocation currentLocation = rc.getLocation();
-        int maxSoup = 0;
-
         for (int xOffset = -5; xOffset <= 5; xOffset++) {
-            if (foundSoup == false) {
                 for (int yOffset = -5; yOffset <= 5; yOffset++) {
-                    MapLocation scanLocation = new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset);
-                    int soupContent = trySenseSoup(scanLocation);
-                    if (soupContent > maxSoup) {
-                        maxSoup = soupContent;
-                        bestTile = scanLocation;
-                        foundSoup = true;
-                        break;
+                        if (trySenseSoup(new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset))>0) {
+                            return new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset);
+                        }
                     }
-                }
+                } return new MapLocation(-1,-1);
             }
-        }
-        return bestTile;
-    }
+
 
     static Direction dirTo(MapLocation loc) throws GameActionException {
         return rc.getLocation().directionTo(loc);
