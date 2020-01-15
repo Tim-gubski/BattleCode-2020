@@ -215,7 +215,7 @@ public strictfp class RobotPlayer {
     static void runDesignSchool() throws GameActionException {
 //        Build a landscaper in the closest possible direction to the HQ
         int landscaperLimit = 20; // This is a temporary landscaper limit.
-        if (landscaperCount < landscaperLimit && rc.getRoundNum()>350) {
+        if (landscaperCount < landscaperLimit) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
                 landscaperCount++;
             }
