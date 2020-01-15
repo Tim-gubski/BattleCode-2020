@@ -65,7 +65,6 @@ public strictfp class RobotPlayer {
         //System.out.println("I'm a " + rc.getType() + " and I just got created!");
         while (true) {
             turnCount += 1;
-            System.out.println(rc.getType());
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
                 // Here, we've separated the controls into a different method for each RobotType.
@@ -184,9 +183,8 @@ public strictfp class RobotPlayer {
             }
         }
         else {
-            tryMove(dirTo(findSoup()));
+            moveTowards(findSoup());
         }
-        tryMove(randomDirection());
 
     }
 
@@ -200,12 +198,13 @@ public strictfp class RobotPlayer {
 
     static void runDesignSchool() throws GameActionException {
         //Build a landscaper in the closest possible direction to the HQ
-        int landscaperLimit = 3; // This is a temporary landscaper limit.
-        if (landscaperCount < landscaperLimit) {
-            if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
-                landscaperCount++;
-            }
-        }
+//        int landscaperLimit = 3; // This is a temporary landscaper limit.
+//        if (landscaperCount < landscaperLimit) {
+        tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc));
+//            if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
+//                landscaperCount++;
+//            }
+//        }
     }
 
     static void runFulfillmentCenter() throws GameActionException {
@@ -284,16 +283,16 @@ public strictfp class RobotPlayer {
         return directions[(int) (Math.random() * directions.length)];
     }
 
-    static MapLocation findSoup() throws GameActionException {
+    static Direction findSoup() throws GameActionException {
         // Scan tiles for soup
         MapLocation currentLocation = rc.getLocation();
         for (int xOffset = -5; xOffset <= 5; xOffset++) {
                 for (int yOffset = -5; yOffset <= 5; yOffset++) {
                         if (trySenseSoup(new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset))>0) {
-                            return new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset);
+                            return dirTo(new MapLocation(currentLocation.x + xOffset, currentLocation.y + yOffset));
                         }
                     }
-                } return new MapLocation(-1,-1);
+                } return randomDirection();
             }
 
 
@@ -374,13 +373,12 @@ public strictfp class RobotPlayer {
         if (rc.isReady() && rc.canBuildRobot(type, dir)) {
             rc.buildRobot(type, dir);
             return true;
-        } else if (rc.isReady() && rc.canBuildRobot(type, dir.rotateRight())) {
+        }
+        else if (rc.isReady() && rc.canBuildRobot(type, dir.rotateRight())) {
             rc.buildRobot(type, dir.rotateRight());
             return true;
-        } else if (rc.isReady() && rc.canBuildRobot(type, dir.rotateLeft())) {
-            rc.buildRobot(type, dir.rotateLeft());
-            return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
