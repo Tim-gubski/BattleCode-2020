@@ -286,7 +286,22 @@ public strictfp class RobotPlayer {
 //            moveTowards(dirTo(hqLoc));
 //        }
 
-    }
+        if(rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 450){
+            tryDigDirt(Direction.CENTER);
+            MapLocation bestTile = null;
+            int lowest = 10000;
+            for (Direction dir : directions) {
+                if(rc.senseElevation(rc.getLocation().add(dir))<lowest && rc.getLocation().add(dir).distanceSquaredTo(hqLoc)>2){
+                    lowest = rc.senseElevation(rc.getLocation().add(dir));
+                    bestTile = rc.getLocation().add(dir);
+                }
+            }
+            tryDropDirt(bestTile);
+        }
+        if(!rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 450){
+            tryDigDirt(dirTo(hqLoc).opposite());
+            tryDropDirt(rc.getLocation());
+        }
 
 //        tryDigDirt(dirTo(hqLoc).opposite());
 //        for (Direction dir : directions) {
@@ -298,7 +313,7 @@ public strictfp class RobotPlayer {
 //        if (tryDropDirt(bestTile)) {
 //        } else {
 //            moveTowards(bestTile);
-//        }
+        }
     static void runDeliveryDrone() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         MapLocation enemyHQ = null;
@@ -480,7 +495,7 @@ public strictfp class RobotPlayer {
     }
 
     static boolean tryDropDirt(MapLocation loc) throws GameActionException {
-        if (rc.isReady() && rc.canDepositDirt(dirTo(loc)) && rc.getLocation().isAdjacentTo(loc)) {
+        if (rc.isReady() && rc.canDepositDirt(dirTo(loc)) && (rc.getLocation().isAdjacentTo(loc) || rc.getLocation() == loc)) {
             rc.depositDirt(dirTo(loc));
             return true;
         } else {
