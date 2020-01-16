@@ -175,13 +175,13 @@ public strictfp class RobotPlayer {
                 }
             }
             //If Refinery doesn't exist and robot is in a set radius around the HQ, create a Refinery
-            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 34 && !isRefinery && isSchool && isCenter) {
+            if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 60 && !isRefinery && isSchool && isCenter) {
                 tryBuild(RobotType.REFINERY, dirTo(hqLoc));
             }
         }
 
 //        VAPES!!!
-        if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 98) {
+        if (radiusTo(hqLoc) >= 45 && radiusTo(hqLoc) <= 98) {
             tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
         }
 
