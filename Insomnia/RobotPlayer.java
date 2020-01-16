@@ -321,14 +321,17 @@ public strictfp class RobotPlayer {
 //                // Pick up a first robot within range
 //                for (RobotInfo robot : enemies) {
 //                    if (robot.getType() == RobotType.LANDSCAPER) {
+//                        if (rc.canPickUpUnit()) {
 //                        rc.pickUpUnit(robot.getID());
 //                        break;
+//                    } else {
+//                    droneMoveTowards(robot.location);
 //                    }
 //                }
 //            }
 //        } else {
 //            droneMoveTowards(enemyHQ);
-//
+//            }
 //        }
     }
 
