@@ -286,7 +286,7 @@ public strictfp class RobotPlayer {
 //            moveTowards(dirTo(hqLoc));
 //        }
 
-        if(rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 450){
+        if(rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() > 450){
             tryDigDirt(Direction.CENTER);
             MapLocation bestTile = null;
             int lowest = 10000;
@@ -298,7 +298,7 @@ public strictfp class RobotPlayer {
             }
             tryDropDirt(bestTile);
         }
-        if(!rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 450){
+        if(!rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() > 450){
             tryDigDirt(dirTo(hqLoc).opposite());
             tryDropDirt(rc.getLocation());
         }
@@ -529,15 +529,10 @@ public strictfp class RobotPlayer {
         }
     }
 
-    static void tryChainSoup() throws GameActionException {
-        if (turnCount < 3) {
-            int[] message = new int[7];
-            for (int i = 0; i < 7; i++) {
-                message[i] = 123;
-            }
-            if (rc.canSubmitTransaction(message, 10)) {
-                rc.submitTransaction(message, 10);
-            }
+    static void tryChainSoup(int x, int y) throws GameActionException {
+        int[] message = new int[6,9,4,];
+        if (rc.canSubmitTransaction(message, 10)) {
+            rc.submitTransaction(message, 10);
         }
     }
 
