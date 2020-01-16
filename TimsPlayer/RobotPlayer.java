@@ -205,9 +205,13 @@ public strictfp class RobotPlayer {
             }
         }
         if (moveTowards(findSoup())) {
-        } else {
+        } else if(lastSoup!=null) {
             moveTowards(lastSoup);
+            if(rc.getLocation()==lastSoup){
+                lastSoup = null;
+            }
         }
+        tryMove(randomDirection());
 
     }
 
@@ -393,6 +397,9 @@ public strictfp class RobotPlayer {
     }
 
     static boolean moveTowards(MapLocation loc) throws GameActionException {
+        if(loc==null){
+            return false;
+        }
         if (moveTowards(dirTo(loc))) {
             return true;
         } else {
