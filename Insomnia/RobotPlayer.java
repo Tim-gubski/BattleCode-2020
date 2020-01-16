@@ -301,7 +301,7 @@ public strictfp class RobotPlayer {
             }
             RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED);
             for (RobotInfo robot : robots) {
-                if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
+                if (robot.getType() == RobotType.HQ && robot.team == rc.getTeam().opponent()) {
                     tryChainEnemy(robot.location.x,robot.location.y);
                     isChosenOne = false;
                 }
@@ -312,41 +312,21 @@ public strictfp class RobotPlayer {
         }
 
 //        Team enemy = rc.getTeam().opponent();
-//        MapLocation enemyHQ = null;
-//        int hqX;
-//        int hqY;
-//        if (!enemyHQKnown) {
-//            RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
-//            if (enemies.length > 0) {
-//                for (RobotInfo robot : enemies) {
-//                    if (robot.getType() == RobotType.HQ) {
-//                        enemyHQ = robot.getLocation();
-//                        hqX = enemyHQ.x;
-//                        hqY = enemyHQ.y;
-//                        tryChainHQ(hqX, hqY);
-//                    }
-//                }
-//            }
-//        }
 //        if (!rc.isCurrentlyHoldingUnit()) {
 //            // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-//
-//            RobotInfo[] friendlies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, rc.getTeam());
-//            if (friendlies.length > 0) {
+//            RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, rc.getTeam().opponent());
+//            if (enemies.length > 0) {
 //                // Pick up a first robot within range
-//                for (RobotInfo friendly : friendlies) {
-//                    if (friendly.getType() == RobotType.LANDSCAPER) {
-//                        rc.pickUpUnit(friendly.getID());
-//                        System.out.println("I picked up " + friendlies[0].getID() + "!");
+//                for (RobotInfo robot : enemies) {
+//                    if (robot.getType() == RobotType.LANDSCAPER) {
+//                        rc.pickUpUnit(robot.getID());
 //                        break;
 //                    }
 //                }
 //            }
-//        } else if (enemyHQKnown) {
-//            tryMove(dirTo(enemyHQ));
-//
 //        } else {
-//            tryMove(randomDirection());
+//            droneMoveTowards(enemyHQ);
+//
 //        }
     }
 
@@ -464,6 +444,7 @@ public strictfp class RobotPlayer {
             return false;
         }
         if (droneMoveTowards(dirTo(loc))) {
+            droneMoveTowards(dirTo(loc));
             return true;
         } else {
             return false;
