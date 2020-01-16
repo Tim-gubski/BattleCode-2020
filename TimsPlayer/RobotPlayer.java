@@ -35,6 +35,7 @@ public strictfp class RobotPlayer {
     static MapLocation hqLoc;
     static MapLocation refLoc;
     static MapLocation schLoc;
+    static MapLocation desLoc;
     static MapLocation lastSoup;
     static boolean isSchool = false;
     static boolean isCenter = false;
@@ -151,6 +152,25 @@ public strictfp class RobotPlayer {
             tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
         }
 
+        //Check if fulfillment center has been created
+        if (!isCenter) {
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for (RobotInfo robot : robots) {
+                if (robot.type == RobotType.FULFILLMENT_CENTER && robot.team == rc.getTeam()) {
+                    isCenter = true;
+                    desLoc = robot.location;
+                }
+            }
+            //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
+            if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && !isCenter && rc.getRoundNum() > 300) {
+                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.NORTH));
+                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.EAST));
+                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.SOUTH));
+                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(Direction.WEST));
+                
+            }
+        }
+        
         //Check if design school has been created
         if (!isSchool) {
             RobotInfo[] robots = rc.senseNearbyRobots();
@@ -162,25 +182,10 @@ public strictfp class RobotPlayer {
             }
             //If school doesn't exist and robot is in a set radius around the HQ, create a design school
             if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && !isSchool && rc.getRoundNum() > 300) {
-                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.NORTH));
-                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.EAST));
-                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.SOUTH));
-                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(Direction.WEST));
+                tryBuild(RobotType.DESIGN_SCHOOL, hqLoc.add(hqLoc.directionTo(desLoc).opposite()));
             }
         }
-        //Check if fulfillment center has been created
-        if (!isCenter) {
-            RobotInfo[] robots = rc.senseNearbyRobots();
-            for (RobotInfo robot : robots) {
-                if (robot.type == RobotType.FULFILLMENT_CENTER && robot.team == rc.getTeam()) {
-                    isCenter = true;
-                }
-            }
-            //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-            if (radiusTo(hqLoc) >= 4 && radiusTo(hqLoc) <= 8 && !isCenter && rc.getRoundNum() > 300) {
-                tryBuild(RobotType.FULFILLMENT_CENTER, hqLoc.add(hqLoc.directionTo(schLoc).opposite()));
-            }
-        }
+        
 
         //Try refining in all directions
         for (Direction dir : directions) {
@@ -233,13 +238,13 @@ public strictfp class RobotPlayer {
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-//        int droneLimit = 3; // This is a temporary landscaper limit.
-//        if (droneCount < droneLimit) {
-//            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
-//                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
-//                droneCount++;
-//            }
-//        }
+        int droneLimit = 50; // This is a temporary landscaper limit.
+        if (droneCount < droneLimit) {
+            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
+                droneCount++;
+            }
+        }
     }
 
     static void runLandscaper() throws GameActionException {
@@ -286,8 +291,9 @@ public strictfp class RobotPlayer {
         MapLocation enemyHQ = null;
         int hqX;
         int hqY;
+        int loops = 0;
+        RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
         if (!enemyHQKnown) {
-            RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
             if (enemies.length > 0) {
                 for (RobotInfo robot : enemies) {
                     if (robot.getType() == RobotType.HQ) {
@@ -301,16 +307,19 @@ public strictfp class RobotPlayer {
         }
         if (!rc.isCurrentlyHoldingUnit()) {
             // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-
-            RobotInfo[] friendlies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, rc.getTeam());
-            if (friendlies.length > 0) {
+            if (enemies.length > 0) {
                 // Pick up a first robot within range
-                for (RobotInfo friendly : friendlies) {
-                    if (friendly.getType() == RobotType.LANDSCAPER) {
-                        rc.pickUpUnit(friendly.getID());
-                        System.out.println("I picked up " + friendlies[0].getID() + "!");
+                for (RobotInfo robot : enemies) {
+                    if (robot.getType() == RobotType.LANDSCAPER || robot.getType() == RobotType.MINER) {
+                        if (rc.canPickUpUnit(robot.getID())) {
+                            rc.pickUpUnit(robot.getID());
+                            System.out.println("I picked up " + enemies[loops].getID() + "!");
                         break;
+                        } else {
+                            moveTowards(dirTo(robot.getLocation()));
+                        }
                     }
+                    loops++;
                 }
             }
         } else if (enemyHQKnown) {
