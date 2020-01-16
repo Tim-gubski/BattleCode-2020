@@ -69,6 +69,7 @@ public strictfp class RobotPlayer {
             }
         }
 
+
 //        if (hqLoc != null && hqLoc.x >= 0 && hqLoc.y >= 0) {
 //            bigRadius[0] = new MapLocation(hqLoc.x, hqLoc.y + 2);
 //            bigRadius[1] = new MapLocation(hqLoc.x + 1, hqLoc.y + 2);
@@ -87,6 +88,7 @@ public strictfp class RobotPlayer {
 //            bigRadius[14] = new MapLocation(hqLoc.x - 2, hqLoc.y + 2);
 //            bigRadius[15] = new MapLocation(hqLoc.x - 1, hqLoc.y + 2);
 //        }
+
         
 
         while (true) {
