@@ -43,6 +43,7 @@ public strictfp class RobotPlayer {
     static boolean isRefinery = false;
     static boolean enemyHQKnown = false;
     static boolean layerFilled = false;
+    static boolean isChosenOne = false;
 
     /**
      * run() is the method that is called when a robot is instantiated in the
@@ -136,10 +137,16 @@ public strictfp class RobotPlayer {
                 minerCount++;
             }
         }
-        RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED, rc.getTeam().opponent());
+        RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED);
         for (RobotInfo robot : robots) {
-            if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID())) {
+            if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
                 rc.shootUnit(robot.getID());
+            }
+            if(!isChosenOne && robot.getType() == RobotType.DELIVERY_DRONE && rc.getTeam()==robot.team){
+                if(iChooseYou(robot.getID())){
+                    isChosenOne=true;
+                }
+
             }
         }
 
@@ -177,7 +184,7 @@ public strictfp class RobotPlayer {
                 }
             }
             //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-            if (radiusTo(hqLoc) >= 20 && radiusTo(hqLoc) <= 30 && !isSchool && isRefinery) {
+            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 28 && !isSchool && isRefinery) {
                 tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
             }
         }
@@ -190,7 +197,7 @@ public strictfp class RobotPlayer {
                 }
             }
             //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-            if (radiusTo(hqLoc) >= 20 && radiusTo(hqLoc) <= 30 && !isCenter && isRefinery) {
+            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 28 && !isCenter && isRefinery) {
                 tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
             }
         }
@@ -280,7 +287,17 @@ public strictfp class RobotPlayer {
     }
 
     static void runDeliveryDrone() throws GameActionException {
-
+        chainScan();
+        if(isChosenOne){
+            //Put code here for chosen drone
+            if(rc.getLocation().isAdjacentTo(new MapLocation(0,6))){
+                rc.pickUpUnit(rc.senseRobotAtLocation(new MapLocation(0,6)).getID());
+            }
+            moveTowards(new MapLocation(0,6));
+        }else{
+            // Code here for peasant drones
+            moveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH).add(Direction.NORTH));
+        }
 
 //        Team enemy = rc.getTeam().opponent();
 //        MapLocation enemyHQ = null;
@@ -521,6 +538,12 @@ public strictfp class RobotPlayer {
                 isRefinery=true;
                 refLoc=new MapLocation(Integer.parseInt(x),Integer.parseInt(y));
             }
+            if(me[0]==6 && me[1]==9){
+                String id = Integer.toString(me[2])+Integer.toString(me[3])+Integer.toString(me[4])+Integer.toString(me[5])+Integer.toString(me[6]);
+                if (Integer.parseInt(id)==rc.getID()){
+                    isChosenOne=true;
+                }
+            }
         }
     }
 
@@ -538,6 +561,22 @@ public strictfp class RobotPlayer {
         if (rc.canSubmitTransaction(integers, 2)) {
             rc.submitTransaction(integers, 2);
         }
+    }
+    static boolean iChooseYou(int id) throws GameActionException {
+        String message = "69" + Integer.toString(id);
+        // The string you want to be an integer array.
+        String[] integerStrings = message.split("");
+        // Splits each spaced integer into a String array.
+        int[] integers = new int[integerStrings.length];
+        // Creates the integer array.
+        for (int i = 0; i < integers.length; i++){
+            integers[i] = Integer.parseInt(integerStrings[i]);
+            //Parses the integer for each string.
+        }
+        if (rc.canSubmitTransaction(integers, 2)) {
+            rc.submitTransaction(integers, 2);
+            return true;
+        }return false;
     }
     static void tryChainCenter(int x, int y) throws GameActionException {
         String message = "666" + String.format("%02d", x) + String.format("%02d", y);
