@@ -497,9 +497,9 @@ public strictfp class RobotPlayer {
     }
 
     static void tryChainSoup(int x, int y) throws GameActionException {
-        int[] message = new int[6,9,4,];
-        if (rc.canSubmitTransaction(message, 10)) {
-            rc.submitTransaction(message, 10);
+        int[] message = new int[6,9,4];
+        if (rc.canSubmitTransaction(message, 2)) {
+            rc.submitTransaction(message, 2);
         }
     }
 
