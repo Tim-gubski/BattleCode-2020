@@ -68,7 +68,6 @@ public strictfp class RobotPlayer {
             }
         }
 
-
 //        if (hqLoc != null && hqLoc.x >= 0 && hqLoc.y >= 0) {
 //            bigRadius[0] = new MapLocation(hqLoc.x, hqLoc.y + 2);
 //            bigRadius[1] = new MapLocation(hqLoc.x + 1, hqLoc.y + 2);
@@ -87,9 +86,6 @@ public strictfp class RobotPlayer {
 //            bigRadius[14] = new MapLocation(hqLoc.x - 2, hqLoc.y + 2);
 //            bigRadius[15] = new MapLocation(hqLoc.x - 1, hqLoc.y + 2);
 //        }
-
-        
-
         while (true) {
             turnCount += 1;
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
@@ -271,28 +267,10 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-        boolean forComplete = true;
-        //Check if outer ring is filled
-        for (MapLocation loc : bigRadius) {
-            RobotInfo[] robots2 = rc.senseNearbyRobots(loc, 0, rc.getTeam());
-            if (robots2.length == 0) {
-                layerFilled = false;
-                break;
-            }
-        }
-
+        
+        
         if (radiusTo(hqLoc) < 3 || radiusTo(hqLoc) > 8 && !layerFilled) {
-            for (MapLocation loc : bigRadius) {
-                RobotInfo[] robots = rc.senseNearbyRobots(loc, 0, rc.getTeam());
-                if (robots.length == 0) {
-                    moveTowards(dirTo(loc));
-                    forComplete = false;
-                    break;
-                }
-            }
-            if (!forComplete) {
-                layerFilled = false;
-            }
+            moveTowards(dirTo(hqLoc));
         }
 
         if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 420) {
