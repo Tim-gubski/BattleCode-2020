@@ -242,7 +242,7 @@ public strictfp class RobotPlayer {
 //        Build a landscaper in the closest possible direction to the HQ
         int landscaperLimit = 16; // This is a temporary landscaper limit.
         if (rc.getRoundNum() > 420) {
-            landscaperLimit += 5;
+            landscaperLimit += 6;
         }
         if (landscaperCount < landscaperLimit) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
@@ -278,9 +278,10 @@ public strictfp class RobotPlayer {
             moveTowards(dirTo(hqLoc));
         }
 
-        if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 420) {
+        if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 430) {
             moveTowards(dirTo(schLoc).opposite());
         }
+        
 //            if (!rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() >= 420) {
 //            moveTowards(dirTo(hqLoc));
 //        }
