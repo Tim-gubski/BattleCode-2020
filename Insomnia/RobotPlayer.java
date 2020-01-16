@@ -34,7 +34,9 @@ public strictfp class RobotPlayer {
     static int hqY1;
     static int hqY2;
     static int hqY3;
+    static int currentTarget = 0;
     static MapLocation hqLoc;
+    static MapLocation enemyHQ;
     static MapLocation refLoc;
     static MapLocation schLoc;
     static MapLocation lastSoup;
@@ -288,15 +290,25 @@ public strictfp class RobotPlayer {
 
     static void runDeliveryDrone() throws GameActionException {
         chainScan();
+        MapLocation[] targets = new MapLocation[] {new MapLocation(rc.getMapWidth()-hqLoc.x,rc.getMapHeight()-hqLoc.y),
+                new MapLocation(rc.getMapWidth()-hqLoc.x,hqLoc.y),
+                new MapLocation(hqLoc.x,rc.getMapHeight()-hqLoc.y)};
         if(isChosenOne){
-            //Put code here for chosen drone
-            if(rc.getLocation().isAdjacentTo(new MapLocation(0,6))){
-                rc.pickUpUnit(rc.senseRobotAtLocation(new MapLocation(0,6)).getID());
+
+            droneMoveTowards(targets[currentTarget]);
+            if(rc.getLocation().equals(targets[currentTarget])){
+                currentTarget+=1;
             }
-            moveTowards(new MapLocation(0,6));
+            RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED);
+            for (RobotInfo robot : robots) {
+                if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
+                    tryChainEnemy(robot.location.x,robot.location.y);
+                    isChosenOne = false;
+                }
+            }
         }else{
             // Code here for peasant drones
-            moveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH).add(Direction.NORTH));
+            droneMoveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH).add(Direction.NORTH));
         }
 
 //        Team enemy = rc.getTeam().opponent();
@@ -409,6 +421,17 @@ public strictfp class RobotPlayer {
         }
     }
 
+    static boolean tryDroneMove(Direction dir) throws GameActionException {
+        // System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " " + rc.canMove(dir));
+        if (rc.isReady() && rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
     static boolean moveTowards(MapLocation loc) throws GameActionException {
         if(loc==null){
             return false;
@@ -430,6 +453,33 @@ public strictfp class RobotPlayer {
         } else if (tryMove(dir.rotateLeft())) {
             return true;
         } else if (tryMove(dir.rotateLeft().rotateLeft())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static boolean droneMoveTowards(MapLocation loc) throws GameActionException {
+        if(loc==null){
+            return false;
+        }
+        if (droneMoveTowards(dirTo(loc))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static boolean droneMoveTowards(Direction dir) throws GameActionException {
+        if (tryDroneMove(dir)) {
+            return true;
+        } else if (tryDroneMove(dir.rotateRight())) {
+            return true;
+        } else if (tryDroneMove(dir.rotateRight().rotateRight())) {
+            return true;
+        } else if (tryDroneMove(dir.rotateLeft())) {
+            return true;
+        } else if (tryDroneMove(dir.rotateLeft().rotateLeft())) {
             return true;
         } else {
             return false;
@@ -538,6 +588,11 @@ public strictfp class RobotPlayer {
                 isRefinery=true;
                 refLoc=new MapLocation(Integer.parseInt(x),Integer.parseInt(y));
             }
+            if(me[0]==4 && me[1]==2 && me[2]==0){
+                String x = Integer.toString(me[3])+Integer.toString(me[4]);
+                String y = Integer.toString(me[5])+Integer.toString(me[6]);
+                enemyHQ=new MapLocation(Integer.parseInt(x),Integer.parseInt(y));
+            }
             if(me[0]==6 && me[1]==9){
                 String id = Integer.toString(me[2])+Integer.toString(me[3])+Integer.toString(me[4])+Integer.toString(me[5])+Integer.toString(me[6]);
                 if (Integer.parseInt(id)==rc.getID()){
@@ -593,6 +648,24 @@ public strictfp class RobotPlayer {
             rc.submitTransaction(integers, 2);
         }
     }
+
+    static boolean tryChainEnemy(int x, int y) throws GameActionException {
+        String message = "420" + String.format("%02d", x) + String.format("%02d", y);
+        // The string you want to be an integer array.
+        String[] integerStrings = message.split("");
+        // Splits each spaced integer into a String array.
+        int[] integers = new int[integerStrings.length];
+        // Creates the integer array.
+        for (int i = 0; i < integers.length; i++){
+            integers[i] = Integer.parseInt(integerStrings[i]);
+            //Parses the integer for each string.
+        }
+        if (rc.canSubmitTransaction(integers, 2)) {
+            rc.submitTransaction(integers, 2);
+            return true;
+        }return false;
+    }
+
     static void tryChainRefinery(int x, int y) throws GameActionException {
         String message = "273" + String.format("%02d", x) + String.format("%02d", y);
         // The string you want to be an integer array.
