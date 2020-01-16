@@ -70,6 +70,13 @@ public strictfp class RobotPlayer {
         if(rc.getType()==RobotType.DESIGN_SCHOOL){
             tryChainSchool(rc.getLocation().x,rc.getLocation().y);
         }
+        if(rc.getType()==RobotType.FULFILLMENT_CENTER){
+            tryChainCenter(rc.getLocation().x,rc.getLocation().y);
+        }
+        if(rc.getType()==RobotType.REFINERY){
+            tryChainRefinery(rc.getLocation().x,rc.getLocation().y);
+        }
+
 
         while (true) {
             turnCount += 1;
@@ -217,6 +224,7 @@ public strictfp class RobotPlayer {
     }
 
     static void runRefinery() throws GameActionException {
+
         // System.out.println("Pollution: " + rc.sensePollution(rc.getLocation()));
     }
 
@@ -498,11 +506,50 @@ public strictfp class RobotPlayer {
             if(me[0]==0 && me[1]==6 && me[2]==9){
                 isSchool=true;
             }
+            if(me[0]==6 && me[1]==6 && me[2]==6){
+                isCenter=true;
+            }
+            if(me[0]==2 && me[1]==7 && me[2]==3){
+                String x = Integer.toString(me[3])+Integer.toString(me[4]);
+                String y = Integer.toString(me[5])+Integer.toString(me[6]);
+                isRefinery=true;
+                refLoc=new MapLocation(Integer.parseInt(x),Integer.parseInt(y));
+            }
         }
     }
 
     static void tryChainSchool(int x, int y) throws GameActionException {
         String message = "069" + String.format("%02d", x) + String.format("%02d", y);
+        // The string you want to be an integer array.
+        String[] integerStrings = message.split("");
+        // Splits each spaced integer into a String array.
+        int[] integers = new int[integerStrings.length];
+        // Creates the integer array.
+        for (int i = 0; i < integers.length; i++){
+            integers[i] = Integer.parseInt(integerStrings[i]);
+            //Parses the integer for each string.
+        }
+        if (rc.canSubmitTransaction(integers, 2)) {
+            rc.submitTransaction(integers, 2);
+        }
+    }
+    static void tryChainCenter(int x, int y) throws GameActionException {
+        String message = "666" + String.format("%02d", x) + String.format("%02d", y);
+        // The string you want to be an integer array.
+        String[] integerStrings = message.split("");
+        // Splits each spaced integer into a String array.
+        int[] integers = new int[integerStrings.length];
+        // Creates the integer array.
+        for (int i = 0; i < integers.length; i++){
+            integers[i] = Integer.parseInt(integerStrings[i]);
+            //Parses the integer for each string.
+        }
+        if (rc.canSubmitTransaction(integers, 2)) {
+            rc.submitTransaction(integers, 2);
+        }
+    }
+    static void tryChainRefinery(int x, int y) throws GameActionException {
+        String message = "273" + String.format("%02d", x) + String.format("%02d", y);
         // The string you want to be an integer array.
         String[] integerStrings = message.split("");
         // Splits each spaced integer into a String array.
