@@ -66,6 +66,8 @@ public strictfp class RobotPlayer {
                     hqLoc = robot.location;
                 }
             }
+        }else if(rc.getType()==RobotType.HQ){
+            hqLoc = 
         }
         //FIX
         //FIX
