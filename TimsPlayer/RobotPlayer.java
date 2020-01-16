@@ -211,6 +211,7 @@ public strictfp class RobotPlayer {
         for (Direction dir : directions) {
             if (tryMine(dir)) {
                 System.out.println("I mined soup! " + rc.getSoupCarrying());
+                lastSoup=rc.getLocation().add(dir);
             }
         }
 
@@ -224,7 +225,7 @@ public strictfp class RobotPlayer {
         }
         if (moveTowards(findSoup())) {
         } else {
-            tryMove(randomDirection());
+            moveTowards(lastSoup);
         }
 
     }
