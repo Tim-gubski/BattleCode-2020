@@ -35,6 +35,7 @@ public strictfp class RobotPlayer {
     static MapLocation hqLoc;
     static MapLocation refLoc;
     static MapLocation schLoc;
+    static MapLocation lastSoup;
     static MapLocation[] bigRadius;
     static boolean isSchool = false;
     static boolean isCenter = false;
