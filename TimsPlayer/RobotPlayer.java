@@ -277,7 +277,7 @@ public strictfp class RobotPlayer {
             moveTowards(dirTo(hqLoc));
         }
 
-        if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 420) {
+        if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 430) {
             moveTowards(dirTo(schLoc).opposite());
         }
         
