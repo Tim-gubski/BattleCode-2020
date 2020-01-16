@@ -131,6 +131,11 @@ public strictfp class RobotPlayer {
                 minerCount++;
             }
         }
+        if(rc.getRoundNum()>20 && rc.getTeamSoup()>400 && minerCount<6){
+            if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
+                minerCount++;
+            }
+        }
         RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED, rc.getTeam().opponent());
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID())) {
@@ -244,13 +249,12 @@ public strictfp class RobotPlayer {
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-//        int droneLimit = 3; // This is a temporary landscaper limit.
-//        if (droneCount < droneLimit) {
-//            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
-//                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
-//                droneCount++;
-//            }
-//        }
+        int droneLimit = 10; // This is a temporary drone limit.
+        if (droneCount < droneLimit) {
+            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+                droneCount++;
+            }
+        }
     }
 
     static void runLandscaper() throws GameActionException {
@@ -276,43 +280,45 @@ public strictfp class RobotPlayer {
     }
 
     static void runDeliveryDrone() throws GameActionException {
-        Team enemy = rc.getTeam().opponent();
-        MapLocation enemyHQ = null;
-        int hqX;
-        int hqY;
-        if (!enemyHQKnown) {
-            RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
-            if (enemies.length > 0) {
-                for (RobotInfo robot : enemies) {
-                    if (robot.getType() == RobotType.HQ) {
-                        enemyHQ = robot.getLocation();
-                        hqX = enemyHQ.x;
-                        hqY = enemyHQ.y;
-                        tryChainHQ(hqX, hqY);
-                    }
-                }
-            }
-        }
-        if (!rc.isCurrentlyHoldingUnit()) {
-            // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
 
-            RobotInfo[] friendlies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, rc.getTeam());
-            if (friendlies.length > 0) {
-                // Pick up a first robot within range
-                for (RobotInfo friendly : friendlies) {
-                    if (friendly.getType() == RobotType.LANDSCAPER) {
-                        rc.pickUpUnit(friendly.getID());
-                        System.out.println("I picked up " + friendlies[0].getID() + "!");
-                        break;
-                    }
-                }
-            }
-        } else if (enemyHQKnown) {
-            tryMove(dirTo(enemyHQ));
 
-        } else {
-            tryMove(randomDirection());
-        }
+//        Team enemy = rc.getTeam().opponent();
+//        MapLocation enemyHQ = null;
+//        int hqX;
+//        int hqY;
+//        if (!enemyHQKnown) {
+//            RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
+//            if (enemies.length > 0) {
+//                for (RobotInfo robot : enemies) {
+//                    if (robot.getType() == RobotType.HQ) {
+//                        enemyHQ = robot.getLocation();
+//                        hqX = enemyHQ.x;
+//                        hqY = enemyHQ.y;
+//                        tryChainHQ(hqX, hqY);
+//                    }
+//                }
+//            }
+//        }
+//        if (!rc.isCurrentlyHoldingUnit()) {
+//            // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
+//
+//            RobotInfo[] friendlies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, rc.getTeam());
+//            if (friendlies.length > 0) {
+//                // Pick up a first robot within range
+//                for (RobotInfo friendly : friendlies) {
+//                    if (friendly.getType() == RobotType.LANDSCAPER) {
+//                        rc.pickUpUnit(friendly.getID());
+//                        System.out.println("I picked up " + friendlies[0].getID() + "!");
+//                        break;
+//                    }
+//                }
+//            }
+//        } else if (enemyHQKnown) {
+//            tryMove(dirTo(enemyHQ));
+//
+//        } else {
+//            tryMove(randomDirection());
+//        }
     }
 
     static void runNetGun() throws GameActionException {
