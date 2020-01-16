@@ -192,7 +192,7 @@ public strictfp class RobotPlayer {
         for (Direction dir : directions) {
             if (tryMine(dir)) {
                 System.out.println("I mined soup! " + rc.getSoupCarrying());
-                lastSoup=rc.getLocation().add(dir);
+                lastSoup = rc.getLocation().add(dir);
             }
         }
 
@@ -253,14 +253,30 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-        
-        
+
         if (radiusTo(hqLoc) < 3 || radiusTo(hqLoc) > 8 && !layerFilled) {
             moveTowards(dirTo(hqLoc));
         }
 
         if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 430) {
             moveTowards(dirTo(schLoc).opposite());
+        }
+
+        if (rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 450) {
+            tryDigDirt(Direction.CENTER);
+            MapLocation bestTile = null;
+            int lowest = 10000;
+            for (Direction dir : directions) {
+                if (rc.senseElevation(rc.getLocation().add(dir)) < lowest && rc.getLocation().add(dir).distanceSquaredTo(hqLoc) > 2) {
+                    lowest = rc.senseElevation(rc.getLocation().add(dir));
+                    bestTile = rc.getLocation().add(dir);
+                }
+            }
+            tryDropDirt(bestTile);
+        }
+        if (!rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 450) {
+            tryDigDirt(dirTo(hqLoc).opposite());
+            tryDropDirt(rc.getLocation());
         }
 
     }
@@ -446,7 +462,7 @@ public strictfp class RobotPlayer {
     }
 
     static boolean tryDropDirt(MapLocation loc) throws GameActionException {
-        if (rc.isReady() && rc.canDepositDirt(dirTo(loc)) && rc.getLocation().isAdjacentTo(loc)) {
+        if (rc.isReady() && rc.canDepositDirt(dirTo(loc)) && (rc.getLocation().isAdjacentTo(loc) || rc.getLocation() == loc)) {
             rc.depositDirt(dirTo(loc));
             return true;
         } else {
