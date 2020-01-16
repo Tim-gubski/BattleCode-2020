@@ -262,7 +262,7 @@ public strictfp class RobotPlayer {
             moveTowards(dirTo(schLoc).opposite());
         }
 
-        if (rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 450) {
+        if (rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() < 460) {
             tryDigDirt(Direction.CENTER);
             MapLocation bestTile = null;
             int lowest = 10000;
