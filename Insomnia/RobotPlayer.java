@@ -40,6 +40,7 @@ public strictfp class RobotPlayer {
     static MapLocation refLoc;
     static MapLocation schLoc;
     static MapLocation lastSoup;
+    static MapLocation mapMid;
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
@@ -59,6 +60,7 @@ public strictfp class RobotPlayer {
         RobotPlayer.rc = rc;
         mapHeight = rc.getMapHeight();
         mapWidth = rc.getMapWidth();
+        mapMid = new MapLocation((int)(mapWidth / 2), (int)(mapHeight / 2));
         turnCount = 0;
 
         if (hqLoc == null) {
@@ -308,7 +310,7 @@ public strictfp class RobotPlayer {
             }
         }else{
             // Code here for peasant drones
-            droneMoveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH).add(Direction.NORTH));
+            droneMoveTowards(mapMid);
         }
 
 //        Team enemy = rc.getTeam().opponent();
