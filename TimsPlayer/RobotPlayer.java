@@ -36,7 +36,6 @@ public strictfp class RobotPlayer {
     static MapLocation refLoc;
     static MapLocation schLoc;
     static MapLocation lastSoup;
-    static MapLocation[] bigRadius;
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
@@ -69,24 +68,6 @@ public strictfp class RobotPlayer {
             }
         }
 
-//        if (hqLoc != null && hqLoc.x >= 0 && hqLoc.y >= 0) {
-//            bigRadius[0] = new MapLocation(hqLoc.x, hqLoc.y + 2);
-//            bigRadius[1] = new MapLocation(hqLoc.x + 1, hqLoc.y + 2);
-//            bigRadius[2] = new MapLocation(hqLoc.x + 2, hqLoc.y + 2);
-//            bigRadius[3] = new MapLocation(hqLoc.x + 2, hqLoc.y + 1);
-//            bigRadius[4] = new MapLocation(hqLoc.x + 2, hqLoc.y);
-//            bigRadius[5] = new MapLocation(hqLoc.x + 2, hqLoc.y - 1);
-//            bigRadius[6] = new MapLocation(hqLoc.x + 2, hqLoc.y - 2);
-//            bigRadius[7] = new MapLocation(hqLoc.x + 1, hqLoc.y - 2);
-//            bigRadius[8] = new MapLocation(hqLoc.x, hqLoc.y - 2);
-//            bigRadius[9] = new MapLocation(hqLoc.x - 1, hqLoc.y - 2);
-//            bigRadius[10] = new MapLocation(hqLoc.x - 2, hqLoc.y - 2);
-//            bigRadius[11] = new MapLocation(hqLoc.x - 2, hqLoc.y - 1);
-//            bigRadius[12] = new MapLocation(hqLoc.x - 2, hqLoc.y);
-//            bigRadius[13] = new MapLocation(hqLoc.x - 2, hqLoc.y + 1);
-//            bigRadius[14] = new MapLocation(hqLoc.x - 2, hqLoc.y + 2);
-//            bigRadius[15] = new MapLocation(hqLoc.x - 1, hqLoc.y + 2);
-//        }
         while (true) {
             turnCount += 1;
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
@@ -211,7 +192,7 @@ public strictfp class RobotPlayer {
         for (Direction dir : directions) {
             if (tryMine(dir)) {
                 System.out.println("I mined soup! " + rc.getSoupCarrying());
-                lastSoup=rc.getLocation().add(dir);
+                lastSoup = rc.getLocation().add(dir);
             }
         }
 
@@ -272,8 +253,7 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-        
-        
+
         if (radiusTo(hqLoc) < 3 || radiusTo(hqLoc) > 8 && !layerFilled) {
             moveTowards(dirTo(hqLoc));
         }
@@ -281,17 +261,13 @@ public strictfp class RobotPlayer {
         if (rc.getLocation().isAdjacentTo(schLoc) && rc.getRoundNum() < 430) {
             moveTowards(dirTo(schLoc).opposite());
         }
-        
-//            if (!rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() >= 420) {
-//            moveTowards(dirTo(hqLoc));
-//        }
 
         if(rc.getLocation().isAdjacentTo(hqLoc) && rc.getRoundNum() > 450){
             tryDigDirt(Direction.CENTER);
             MapLocation bestTile = null;
             int lowest = 10000;
             for (Direction dir : directions) {
-                if(rc.senseElevation(rc.getLocation().add(dir))<lowest && rc.getLocation().add(dir).distanceSquaredTo(hqLoc)>2){
+                if (rc.senseElevation(rc.getLocation().add(dir)) < lowest && rc.getLocation().add(dir).distanceSquaredTo(hqLoc) > 2) {
                     lowest = rc.senseElevation(rc.getLocation().add(dir));
                     bestTile = rc.getLocation().add(dir);
                 }
@@ -303,17 +279,8 @@ public strictfp class RobotPlayer {
             tryDropDirt(rc.getLocation());
         }
 
-//        tryDigDirt(dirTo(hqLoc).opposite());
-//        for (Direction dir : directions) {
-//            if(trySenseElevation(hqLoc.add(dir)) <= lowestElevation){
-//                lowestElevation = trySenseElevation(hqLoc.add(dir));
-//                bestTile = hqLoc.add(dir);
-//            }
-//        }
-//        if (tryDropDirt(bestTile)) {
-//        } else {
-//            moveTowards(bestTile);
-        }
+    }
+
     static void runDeliveryDrone() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         MapLocation enemyHQ = null;
