@@ -304,7 +304,7 @@ public strictfp class RobotPlayer {
             if (rc.getLocation().equals(targets[currentTarget])) {
                 currentTarget += 1;
             }
-            RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED);
+            RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.getType() == RobotType.HQ && robot.team == rc.getTeam().opponent()) {
                     trySendChain("420", robot.location.x, robot.location.y);
