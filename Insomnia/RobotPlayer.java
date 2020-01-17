@@ -296,8 +296,10 @@ public strictfp class RobotPlayer {
 
     static void runFulfillmentCenter() throws GameActionException {
         int droneLimit = 50; // This is a temporary drone limit.
-        if (droneCount < droneLimit && rc.getTeamSoup()>200) {
+        if (droneCount < droneLimit && rc.getTeamSoup() > 200) {
             if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+                droneCount++;
+            } else if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
                 droneCount++;
             }
         }
@@ -425,8 +427,7 @@ public strictfp class RobotPlayer {
                     if (seppukuCount >= 7) {
                         rc.disintegrate();
                     }
-                } else {
-                    droneSwarmAround(hqLoc);
+                } else if (droneSwarmAround(hqLoc)) {
                     seppukuCount = 0;
                 }
 
