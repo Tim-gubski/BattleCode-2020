@@ -37,6 +37,7 @@ public strictfp class RobotPlayer {
     static int hqY2;
     static int hqY3;
     static int currentTarget = 0;
+    static int notChosenCurrentTarget = 0;
     static int vapeCount = 0;
     static MapLocation hqLoc;
     static MapLocation enemyHQ;
@@ -285,7 +286,7 @@ public strictfp class RobotPlayer {
 
     static void runDesignSchool() throws GameActionException {
 //        Build a landscaper in the closest possible direction to the HQ
-        int landscaperLimit = 8; // This is a temporary landscaper limit.
+        int landscaperLimit = 9; // This is a temporary landscaper limit.
 
         if (landscaperCount < landscaperLimit) {
             if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
@@ -422,12 +423,12 @@ public strictfp class RobotPlayer {
                     }
                 }
             } else {
-                if(currentTarget==0) {
+                if(notChosenCurrentTarget==0) {
                     droneSwarmAround(mapMid);
                     if(rc.getLocation().isWithinDistanceSquared(mapMid,RobotType.NET_GUN.sensorRadiusSquared+5)){
-                        currentTarget=1;
+                        notChosenCurrentTarget=1;
                     }
-                }if(currentTarget==1){
+                }if(notChosenCurrentTarget==1){
                     droneSwarmAround(hqLoc);
                 }
 
@@ -528,7 +529,7 @@ public strictfp class RobotPlayer {
 
     static boolean tryDroneMove(Direction dir) throws GameActionException {
         // System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " " + rc.canMove(dir));
-        if (rc.isReady() && rc.canMove(dir)) {
+        if (rc.isReady() && rc.canMove(dir) && rc.onTheMap(rc.getLocation().add(dir))) {
             rc.move(dir);
             return true;
         } else {
@@ -697,6 +698,12 @@ public strictfp class RobotPlayer {
             return true;
         } else if (rc.canBuildRobot(type, dir.rotateLeft().rotateLeft())) {
             rc.buildRobot(type, dir.rotateLeft().rotateLeft());
+            return true;
+        } else if (rc.canBuildRobot(type, dir.rotateRight().rotateRight().rotateRight())) {
+            rc.buildRobot(type, dir.rotateRight().rotateRight().rotateRight());
+            return true;
+        } else if (rc.canBuildRobot(type, dir.rotateLeft().rotateLeft().rotateLeft())) {
+            rc.buildRobot(type, dir.rotateLeft().rotateLeft().rotateLeft());
             return true;
         } else {
             return false;
