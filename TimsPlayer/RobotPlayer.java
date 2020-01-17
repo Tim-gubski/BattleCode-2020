@@ -242,13 +242,13 @@ public strictfp class RobotPlayer {
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-        int droneLimit = 50; // This is a temporary landscaper limit.
-        if (droneCount < droneLimit) {
-            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
-                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
-                droneCount++;
-            }
-        }
+//        int droneLimit = 50; // This is a temporary landscaper limit.
+//        if (droneCount < droneLimit) {
+//            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+//                tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc));
+//                droneCount++;
+//            }
+//        }
     }
 
     static void runLandscaper() throws GameActionException {

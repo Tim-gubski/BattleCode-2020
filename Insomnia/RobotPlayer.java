@@ -9,17 +9,17 @@ public strictfp class RobotPlayer {
     static RobotController rc;
 
     static Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST
     };
     static RobotType[] spawnedByMiner = {RobotType.REFINERY, RobotType.VAPORATOR, RobotType.DESIGN_SCHOOL,
-        RobotType.FULFILLMENT_CENTER, RobotType.NET_GUN};
+            RobotType.FULFILLMENT_CENTER, RobotType.NET_GUN};
 
     //Variable Declaration/Initialization
     static int turnCount;
@@ -52,7 +52,6 @@ public strictfp class RobotPlayer {
     /**
      * run() is the method that is called when a robot is instantiated in the
      * Battlecode world. If this method returns, the robot dies!
-     *
      */
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
@@ -206,7 +205,7 @@ public strictfp class RobotPlayer {
             }
             //If school doesn't exist and robot is in a set radius around the HQ, create a design school
             if (radiusTo(hqLoc) >= 16 && radiusTo(hqLoc) <= 24 && !isSchool && isRefinery) {
-                    tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
+                tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
             }
         }
         //Check if fulfillment center has been created
@@ -222,18 +221,18 @@ public strictfp class RobotPlayer {
                 tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
             }
         }
-
-        //Try refining in all directions
-        for (Direction dir : directions) {
-            if (tryRefine(dir)) {
-                System.out.println("I refined soup! " + rc.getTeamSoup());
-            }
-        }
         //Try mining in all directions
         for (Direction dir : directions) {
             if (tryMine(dir)) {
                 System.out.println("I mined soup! " + rc.getSoupCarrying());
                 lastSoup = rc.getLocation().add(dir);
+            }
+        }
+
+        //Try refining in all directions
+        for (Direction dir : directions) {
+            if (tryRefine(dir)) {
+                System.out.println("I refined soup! " + rc.getTeamSoup());
             }
         }
 
@@ -277,13 +276,7 @@ public strictfp class RobotPlayer {
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-        int droneLimit = 1; // This is a temporary drone limit.
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        for (RobotInfo robot : robots) {
-            if (robot.getType() == RobotType.VAPORATOR && robot.team == rc.getTeam()) {
-                droneLimit = 15;
-            }
-        }
+        int droneLimit = 15; // This is a temporary drone limit.
         if (droneCount < droneLimit) {
             if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
                 droneCount++;
@@ -318,8 +311,8 @@ public strictfp class RobotPlayer {
             }
         }
 
-        if (rc.getLocation().isAdjacentTo(hqLoc)) {
-            if (tryDigDirt(dirTo(hqLoc).opposite())){
+        if (rc.getLocation().isAdjacentTo(hqLoc) && (layerFilled || rc.getRoundNum() > 350)) {
+            if (tryDigDirt(dirTo(hqLoc).opposite())) {
                 tryDigDirt(dirTo(hqLoc).opposite());
             }
             tryDropDirt(rc.getLocation());
@@ -331,9 +324,9 @@ public strictfp class RobotPlayer {
         boolean loopBroke = false;
         Team enemy = rc.getTeam().opponent();
         MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
-            new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
-            new MapLocation(hqLoc.x, rc.getMapHeight() - hqLoc.y)};
-        if (isChosenOne) {
+                new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
+                new MapLocation(hqLoc.x, rc.getMapHeight() - hqLoc.y)};
+        if (isChosenOne && rc.getRoundNum() > 750) {
             droneMoveTowards(targets[currentTarget]);
             if (rc.getLocation().equals(targets[currentTarget])) {
                 currentTarget += 1;
@@ -348,36 +341,49 @@ public strictfp class RobotPlayer {
 
                 }
             }
+        } else {
+            droneMoveTowards(mapMid);
         }
-        if (!isChosenOne) {
-            if (rc.getRoundNum() < 800) {
+
+        if ((!isChosenOne) && rc.getRoundNum()>750 && enemyHQKnown) {
+            System.out.println("Im IN");
+            if (!rc.isCurrentlyHoldingUnit()) {
                 RobotInfo[] robots = rc.senseNearbyRobots();
-                if (!rc.isCurrentlyHoldingUnit()) {
+                if (robots.length > 0) {
                     for (RobotInfo robot : robots) {
                         if (robot.getType() == RobotType.LANDSCAPER && robot.team == enemy) {
                             if (rc.canPickUpUnit(robot.getID())) {
                                 rc.pickUpUnit(robot.getID());
-                                loopBroke = true;
                                 break;
                             } else {
                                 droneMoveTowards(robot.getLocation());
-                                loopBroke = true;
                                 break;
                             }
                         }
                     }
-                    if (!loopBroke) {
-                        droneMoveTowards(mapMid);
-                    }
+                }else{
+                    droneMoveTowards(enemyHQ);
                 }
-            } else if (rc.getRoundNum() >= 800) {
-                droneMoveTowards(enemyHQ);
+            }else{
+                droneMoveTowards(mapMid);
             }
+        }else if(!isChosenOne){
+            droneMoveTowards(mapMid);
         }
 
     }
 // Code here for peasant drones
+//            if (rc.getRoundNum() < 800) {
 
+//                }
+//            if (!loopBroke) {
+//                droneMoveTowards(mapMid);
+//            }
+//        }
+//    } else if (rc.getRoundNum() >= 800) {
+//        droneMoveTowards(enemyHQ);
+//    }
+//}
     static void runNetGun() throws GameActionException {
 
     }
@@ -471,18 +477,34 @@ public strictfp class RobotPlayer {
     }
 
     static boolean moveTowards(Direction dir) throws GameActionException {
-        if (tryMove(dir)) {
-            return true;
-        } else if (tryMove(dir.rotateRight())) {
-            return true;
-        } else if (tryMove(dir.rotateRight().rotateRight())) {
-            return true;
-        } else if (tryMove(dir.rotateLeft())) {
-            return true;
-        } else if (tryMove(dir.rotateLeft().rotateLeft())) {
-            return true;
-        } else {
-            return false;
+        if (rc.getRoundNum()%20>10) {
+            if (tryMove(dir)) {
+                return true;
+            } else if (tryMove(dir.rotateRight())) {
+                return true;
+            } else if (tryMove(dir.rotateRight().rotateRight())) {
+                return true;
+            } else if (tryMove(dir.rotateLeft())) {
+                return true;
+            } else if (tryMove(dir.rotateLeft().rotateLeft())) {
+                return true;
+            } else {
+                return false;
+            }
+        } else{
+            if (tryMove(dir)) {
+                return true;
+            } else if (tryMove(dir.rotateLeft())) {
+                return true;
+            } else if (tryMove(dir.rotateLeft().rotateLeft())) {
+                return true;
+            } else if (tryMove(dir.rotateRight())) {
+                return true;
+            } else if (tryMove(dir.rotateRight().rotateRight())) {
+                return true;
+            }else {
+                return false;
+            }
         }
     }
 
@@ -571,7 +593,19 @@ public strictfp class RobotPlayer {
         if (rc.isReady() && rc.canDigDirt(dir)) {
             rc.digDirt(dir);
             return true;
-        } else {
+        } else if(rc.isReady() && rc.canDigDirt(dir.rotateRight())){
+            rc.digDirt(dir.rotateRight());
+            return true;
+        } else if(rc.isReady() && rc.canDigDirt(dir.rotateLeft())){
+            rc.digDirt(dir.rotateLeft());
+            return true;
+        } else if(rc.isReady() && rc.canDigDirt(dir.rotateRight().rotateRight())){
+            rc.digDirt(dir.rotateRight());
+            return true;
+        } else if(rc.isReady() && rc.canDigDirt(dir.rotateLeft().rotateLeft())){
+            rc.digDirt(dir.rotateRight());
+            return true;
+        }else{
             return false;
         }
 
@@ -708,6 +742,7 @@ public strictfp class RobotPlayer {
                 String x = Integer.toString(me[loop]).substring(3, 5);
                 String y = Integer.toString(me[loop]).substring(5, 7);
                 enemyHQ = new MapLocation(Integer.parseInt(x), Integer.parseInt(y));
+                enemyHQKnown = true;
             }
             if (Integer.toString(me[loop]).substring(0, 2).equals("69")) {
                 String id = Integer.toString(me[loop]).substring(2, 7);
