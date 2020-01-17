@@ -64,12 +64,18 @@ public strictfp class RobotPlayer {
         turnCount = 0;
 
         if (hqLoc == null) {
+            if(rc.getType()==RobotType.HQ){
+                hqLoc = rc.getLocation();
+            }
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.HQ && robot.team == rc.getTeam()) {
                     hqLoc = robot.location;
                 }
             }
+        }
+        if (hqLoc == null) {
+            hqChainScan();
         }
 
         if (rc.getType() == RobotType.DESIGN_SCHOOL) {
@@ -82,6 +88,10 @@ public strictfp class RobotPlayer {
         }
         if (rc.getType() == RobotType.REFINERY) {
             trySendChain("273", rc.getLocation().x, rc.getLocation().y);
+            //tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
+        }
+        if (rc.getType() == RobotType.HQ) {
+            trySendChain("911", rc.getLocation().x, rc.getLocation().y);
             //tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
         }
 
@@ -285,10 +295,13 @@ public strictfp class RobotPlayer {
     }
 
     static void runLandscaper() throws GameActionException {
+        if(hqLoc == null){
+            System.out.println("Im peeing");
+        }
         if (!layerFilled) {
             boolean empty = false;
             for (Direction dir : directions) {
-                if (rc.senseRobotAtLocation(hqLoc.add(dir)) == null) {
+                if (trySenseRobotAtLocation(hqLoc.add(dir)) == null && rc.canSenseLocation(hqLoc.add(dir))) {
                     empty = true;
                 }
             }
@@ -341,12 +354,11 @@ public strictfp class RobotPlayer {
 
                 }
             }
-        } else {
+        } else if(isChosenOne) {
             droneMoveTowards(mapMid);
         }
 
-        if ((!isChosenOne) && rc.getRoundNum()>750 && enemyHQKnown) {
-            System.out.println("Im IN");
+        if (!isChosenOne && rc.getRoundNum()>750 && enemyHQKnown) {
             if (!rc.isCurrentlyHoldingUnit()) {
                 RobotInfo[] robots = rc.senseNearbyRobots();
                 if (robots.length > 0) {
@@ -369,6 +381,7 @@ public strictfp class RobotPlayer {
             }
         }else if(!isChosenOne){
             droneMoveTowards(mapMid);
+            System.out.println("Im IN");
         }
 
     }
@@ -437,6 +450,13 @@ public strictfp class RobotPlayer {
         //     return tryMove(Direction.NORTH);
     }
 
+    static RobotInfo trySenseRobotAtLocation(MapLocation loc) throws GameActionException {
+        if (rc.canSenseLocation(loc)) {
+            return rc.senseRobotAtLocation(loc);
+        } else {
+            return null;
+        }
+    }
     static int trySenseSoup(MapLocation loc) throws GameActionException {
         if (rc.isReady() && rc.canSenseLocation(loc)) {
             return rc.senseSoup(loc);
@@ -477,7 +497,7 @@ public strictfp class RobotPlayer {
     }
 
     static boolean moveTowards(Direction dir) throws GameActionException {
-        if (rc.getRoundNum()%20>10) {
+        if (rc.getRoundNum()%30>15) {
             if (tryMove(dir)) {
                 return true;
             } else if (tryMove(dir.rotateRight())) {
@@ -559,12 +579,6 @@ public strictfp class RobotPlayer {
             return true;
         } else if (rc.canBuildRobot(type, dir.rotateLeft().rotateLeft())) {
             rc.buildRobot(type, dir.rotateLeft().rotateLeft());
-            return true;
-        } else if (rc.canBuildRobot(type, dir.rotateRight().rotateRight().rotateRight())) {
-            rc.buildRobot(type, dir.rotateRight().rotateRight().rotateRight());
-            return true;
-        } else if (rc.canBuildRobot(type, dir.rotateLeft().rotateLeft().rotateLeft())) {
-            rc.buildRobot(type, dir.rotateLeft().rotateLeft().rotateLeft());
             return true;
         } else {
             return false;
@@ -699,6 +713,10 @@ public strictfp class RobotPlayer {
         if (chainType.equals("420")) {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
+        //Our HQ
+        if (chainType.equals("911")) {
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
+        }
         if (message == null) {
             return false;
         }
@@ -749,6 +767,20 @@ public strictfp class RobotPlayer {
                 if (Integer.parseInt(id) == rc.getID()) {
                     isChosenOne = true;
                 }
+            }
+            loop++;
+        }
+    }
+
+    static void hqChainScan() throws GameActionException{
+        Transaction[] trans = rc.getBlock(1);
+        int loop = 0;
+        for (Transaction tran : trans) {
+            int[] me = tran.getMessage();
+            if (Integer.toString(me[loop]).substring(0, 3).equals("911")) {
+                String x = Integer.toString(me[loop]).substring(3, 5);
+                String y = Integer.toString(me[loop]).substring(5, 7);
+                hqLoc = new MapLocation(Integer.parseInt(x), Integer.parseInt(y));
             }
             loop++;
         }
