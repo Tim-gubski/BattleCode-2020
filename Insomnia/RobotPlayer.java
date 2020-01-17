@@ -2,6 +2,7 @@ package Insomnia;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.Arrays;
 
 public strictfp class RobotPlayer {
@@ -35,6 +36,7 @@ public strictfp class RobotPlayer {
     static int hqY2;
     static int hqY3;
     static int currentTarget = 0;
+    static int vapeCount = 0;
     static MapLocation hqLoc;
     static MapLocation enemyHQ;
     static MapLocation refLoc;
@@ -91,6 +93,9 @@ public strictfp class RobotPlayer {
         }
         if (rc.getType() == RobotType.HQ) {
             trySendChain("911", rc.getLocation().x, rc.getLocation().y);
+        }
+        if (rc.getType() == RobotType.VAPORATOR) {
+            trySendChain("877", rc.getLocation().x, rc.getLocation().y);
         }
 
         if (hqLoc != null) {
@@ -152,13 +157,12 @@ public strictfp class RobotPlayer {
     }
 
     static void runHQ() throws GameActionException {
-        chainScan();
         if (minerCount < 5) {
             if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
                 minerCount++;
             }
         }
-        if (rc.getRoundNum() > 20 && rc.getTeamSoup() > 800 && minerCount < 6) {
+        if (rc.getRoundNum() > 20 && rc.getTeamSoup() > 400 && minerCount < 6) {
             if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
                 minerCount++;
             }
@@ -174,7 +178,7 @@ public strictfp class RobotPlayer {
                 }
 
             }
-            if(rc.getRoundNum() > 20 && rc.getTeamSoup() > 800 && !isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team){
+            if(rc.getRoundNum() > 20 && rc.getTeamSoup() > 400 && !isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team){
                 if (trySendChain("96", robot.getID())) {
                     isChosenMiner = true;
                 }
@@ -198,25 +202,23 @@ public strictfp class RobotPlayer {
     static void runMiner() throws GameActionException {
         chainScan();
         if(isChosenMiner){
-////        VAPES!!!
-//        if (radiusTo(hqLoc) >= 45 && radiusTo(hqLoc) <= 98 && rc.getRoundNum() <= 520) {
-//            tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
-//        }
             //Check if design school has been created
             if (!takeStep){
                 moveTowards(dirTo(hqLoc).opposite());
                 takeStep = true;
             }
-            if (!isSchool) {
-                    if(tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc).opposite())){
+            if(vapeCount>=3) {
+                if (!isSchool) {
+                    if (tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc).opposite())) {
                         isSchool = true;
                     }
-            }
-            //Check if fulfillment center has been created
-            if (!isCenter) {
-                    if (tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc).opposite())){
+                }
+                //Check if fulfillment center has been created
+                if (!isCenter) {
+                    if (tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc).opposite())) {
                         isCenter = true;
                     }
+                }
             }
             if(isCenter && isSchool ){
                 isChosenMiner=false;
@@ -224,9 +226,11 @@ public strictfp class RobotPlayer {
             //^^CHOSEN ONE CODE^^//
         }else {
             //Try mining in all directions
+            if(vapeCount<3 && rc.getLocation().distanceSquaredTo(hqLoc)>4){
+                tryBuild(RobotType.VAPORATOR,dirTo(hqLoc).opposite());
+            }
             for (Direction dir : directions) {
                 if (tryMine(dir)) {
-                    System.out.println("I mined soup! " + rc.getSoupCarrying());
                     lastSoup = rc.getLocation().add(dir);
                 }
             }
@@ -234,7 +238,6 @@ public strictfp class RobotPlayer {
             //Try refining in all directions
             for (Direction dir : directions) {
                 if (tryRefine(dir)) {
-                    System.out.println("I refined soup! " + rc.getTeamSoup());
                 }
             }
 
@@ -263,7 +266,6 @@ public strictfp class RobotPlayer {
     }
 
     static void runVaporator() throws GameActionException {
-
     }
 
     static void runDesignSchool() throws GameActionException {
@@ -630,7 +632,6 @@ public strictfp class RobotPlayer {
     }
 
     static boolean tryBuild(RobotType type, Direction dir) throws GameActionException {
-        System.out.println("trying to build!!");
         if (rc.canBuildRobot(type, dir)) {
             rc.buildRobot(type, dir);
             return true;
@@ -783,6 +784,10 @@ public strictfp class RobotPlayer {
         if (chainType.equals("911")) {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
+        //Im a vape
+        if (chainType.equals("877")) {
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
+        }
         if (message == null) {
             return false;
         }
@@ -827,6 +832,11 @@ public strictfp class RobotPlayer {
                 String y = Integer.toString(me[loop]).substring(5, 7);
                 enemyHQ = new MapLocation(Integer.parseInt(x), Integer.parseInt(y));
                 enemyHQKnown = true;
+            }
+            if (Integer.toString(me[loop]).substring(0, 3).equals("877")) {
+                String x = Integer.toString(me[loop]).substring(3, 5);
+                String y = Integer.toString(me[loop]).substring(5, 7);
+                vapeCount+=1;
             }
             if (Integer.toString(me[loop]).substring(0, 2).equals("69")) {
                 String id = Integer.toString(me[loop]).substring(2, 7);
