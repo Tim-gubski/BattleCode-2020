@@ -143,7 +143,7 @@ public strictfp class RobotPlayer {
                 minerCount++;
             }
         }
-        RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED);
+        RobotInfo[] robots = rc.senseNearbyRobots();
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
                 rc.shootUnit(robot.getID());
@@ -307,8 +307,11 @@ public strictfp class RobotPlayer {
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.getType() == RobotType.HQ && robot.team == rc.getTeam().opponent()) {
-                    trySendChain("420", robot.location.x, robot.location.y);
-                    isChosenOne = false;
+                    if (trySendChain("420", robot.location.x, robot.location.y)) {
+                        trySendChain("420", robot.location.x, robot.location.y);
+                        isChosenOne = false;
+                    }
+                    
                 }
             }
         } else {
