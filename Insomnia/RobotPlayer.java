@@ -50,6 +50,7 @@ public strictfp class RobotPlayer {
     static boolean layerFilled = false;
     static boolean isChosenOne = false;
     static boolean isChosenMiner = false;
+    static boolean takeStep = false;
 
     /**
      * run() is the method that is called when a robot is instantiated in the
@@ -82,19 +83,15 @@ public strictfp class RobotPlayer {
 
         if (rc.getType() == RobotType.DESIGN_SCHOOL) {
             trySendChain("774", rc.getLocation().x, rc.getLocation().y);
-            //tryChainSchool(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.FULFILLMENT_CENTER) {
             trySendChain("666", rc.getLocation().x, rc.getLocation().y);
-            //tryChainCenter(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.REFINERY) {
             trySendChain("273", rc.getLocation().x, rc.getLocation().y);
-            //tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.HQ) {
             trySendChain("911", rc.getLocation().x, rc.getLocation().y);
-            //tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
         }
 
         if (hqLoc != null) {
@@ -195,95 +192,81 @@ public strictfp class RobotPlayer {
         }
 
     }
-
+//            if (!isRefinery) {
+//        RobotInfo[] robots = rc.senseNearbyRobots();
+//        for (RobotInfo robot : robots) {
+//            if (robot.type == RobotType.REFINERY && robot.team == rc.getTeam()) {
+//                isRefinery = true;
+//                refLoc = robot.location;
+//            }
+//        }
+//        //If Refinery doesn't exist and robot is in a set radius around the HQ, create a Refinery
+//        if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 60 && !isRefinery) {
+//            tryBuild(RobotType.REFINERY, dirTo(hqLoc).opposite());
+//        }
+//    }
     static void runMiner() throws GameActionException {
         chainScan();
-        if (isChosenMiner) {
-            if (!isRefinery) {
-                RobotInfo[] robots = rc.senseNearbyRobots();
-                for (RobotInfo robot : robots) {
-                    if (robot.type == RobotType.REFINERY && robot.team == rc.getTeam()) {
-                        isRefinery = true;
-                        refLoc = robot.location;
-                    }
-                }
-                //If Refinery doesn't exist and robot is in a set radius around the HQ, create a Refinery
-                if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 60 && !isRefinery) {
-                    tryBuild(RobotType.REFINERY, dirTo(hqLoc));
-                }
-            }
+
+        if(isChosenMiner){
 
 ////        VAPES!!!
 //        if (radiusTo(hqLoc) >= 45 && radiusTo(hqLoc) <= 98 && rc.getRoundNum() <= 520) {
 //            tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
 //        }
             //Check if design school has been created
+            if (!takeStep){
+                moveTowards(dirTo(hqLoc).opposite());
+                takeStep = true;
+            }
             if (!isSchool) {
-                RobotInfo[] robots = rc.senseNearbyRobots();
-                for (RobotInfo robot : robots) {
-                    if (robot.type == RobotType.DESIGN_SCHOOL && robot.team == rc.getTeam()) {
+                    if(tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc).opposite())){
                         isSchool = true;
-                        schLoc = robot.location;
                     }
-                }
-                //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-                if (radiusTo(hqLoc) >= 8 && radiusTo(hqLoc) <= 60 && !isSchool && isRefinery) {
-                    System.out.println("running");
-                    tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
-                }
             }
             //Check if fulfillment center has been created
             if (!isCenter) {
-                RobotInfo[] robots = rc.senseNearbyRobots();
-                for (RobotInfo robot : robots) {
-                    if (robot.type == RobotType.FULFILLMENT_CENTER && robot.team == rc.getTeam()) {
+                    if (tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc).opposite())){
                         isCenter = true;
                     }
+            }
+            if(isCenter && isSchool ){
+                isChosenMiner=false;
+            }
+            //^^CHOSEN ONE CODE^^//
+        }else {
+            //Try mining in all directions
+            for (Direction dir : directions) {
+                if (tryMine(dir)) {
+                    System.out.println("I mined soup! " + rc.getSoupCarrying());
+                    lastSoup = rc.getLocation().add(dir);
                 }
-                //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-                if (radiusTo(hqLoc) >= 8 && radiusTo(hqLoc) <= 60 && !isCenter && isRefinery && isSchool) {
-                    tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
+            }
+
+            //Try refining in all directions
+            for (Direction dir : directions) {
+                if (tryRefine(dir)) {
+                    System.out.println("I refined soup! " + rc.getTeamSoup());
                 }
             }
-            if (isCenter && isSchool && isRefinery) {
-                isChosenMiner = false;
-            }
-            moveTowards(dirTo(hqLoc).opposite());
-        }
-        //^^CHOSEN ONE CODE^^//
 
-        //Try mining in all directions
-        for (Direction dir : directions) {
-            if (tryMine(dir)) {
-                System.out.println("I mined soup! " + rc.getSoupCarrying());
-                lastSoup = rc.getLocation().add(dir);
+            //If soup capacity is full, return to HQ to deposit soup
+            if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
+                if (isRefinery) {
+                    moveTowards(refLoc);
+                } else {
+                    moveTowards(hqLoc);
+                }
             }
-        }
-
-        //Try refining in all directions
-        for (Direction dir : directions) {
-            if (tryRefine(dir)) {
-                System.out.println("I refined soup! " + rc.getTeamSoup());
+            if (moveTowards(findSoup())) {
+            } else if (lastSoup != null) {
+                moveTowards(lastSoup);
+                if (rc.getLocation() == lastSoup) {
+                    lastSoup = null;
+                }
             }
+            tryMove(randomDirection());
         }
-
-        //If soup capacity is full, return to HQ to deposit soup
-        if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
-            if (isRefinery) {
-                moveTowards(refLoc);
-            } else {
-                moveTowards(hqLoc);
-            }
-        }
-        if (moveTowards(findSoup())) {
-        } else if (lastSoup != null) {
-            moveTowards(lastSoup);
-            if (rc.getLocation() == lastSoup) {
-                lastSoup = null;
-            }
-        }
-        tryMove(randomDirection());
-
     }
 
     static void runRefinery() throws GameActionException {
@@ -643,18 +626,34 @@ public strictfp class RobotPlayer {
     }
 
     static boolean droneMoveTowards(Direction dir) throws GameActionException {
-        if (tryDroneMove(dir)) {
-            return true;
-        } else if (tryDroneMove(dir.rotateRight())) {
-            return true;
-        } else if (tryDroneMove(dir.rotateRight().rotateRight())) {
-            return true;
-        } else if (tryDroneMove(dir.rotateLeft())) {
-            return true;
-        } else if (tryDroneMove(dir.rotateLeft().rotateLeft())) {
-            return true;
-        } else {
-            return false;
+        if (rc.getRoundNum()%30>15) {
+            if (tryDroneMove(dir)) {
+                return true;
+            } else if (tryDroneMove(dir.rotateRight())) {
+                return true;
+            } else if (tryDroneMove(dir.rotateRight().rotateRight())) {
+                return true;
+            } else if (tryDroneMove(dir.rotateLeft())) {
+                return true;
+            } else if (tryDroneMove(dir.rotateLeft().rotateLeft())) {
+                return true;
+            } else {
+                return false;
+            }
+        }else{
+            if (tryDroneMove(dir)) {
+                return true;
+            } else if (tryDroneMove(dir.rotateLeft())) {
+                return true;
+            } else if (tryDroneMove(dir.rotateLeft().rotateLeft())) {
+                return true;
+            } else if (tryDroneMove(dir.rotateRight())) {
+                return true;
+            } else if (tryDroneMove(dir.rotateRight().rotateRight())) {
+                return true;
+            }  else {
+                return false;
+            }
         }
     }
 
@@ -668,6 +667,7 @@ public strictfp class RobotPlayer {
     }
 
     static boolean tryBuild(RobotType type, Direction dir) throws GameActionException {
+        System.out.println("trying to build!!");
         if (rc.canBuildRobot(type, dir)) {
             rc.buildRobot(type, dir);
             return true;
