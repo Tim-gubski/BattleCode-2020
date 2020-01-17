@@ -190,7 +190,7 @@ public strictfp class RobotPlayer {
                 }
             }
             //If school doesn't exist and robot is in a set radius around the HQ, create a design school
-            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 28 && !isSchool && isRefinery) {
+            if (radiusTo(hqLoc) >= 16 && radiusTo(hqLoc) <= 24 && !isSchool && isRefinery) {
                 tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
             }
         }
@@ -203,7 +203,7 @@ public strictfp class RobotPlayer {
                 }
             }
             //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-            if (radiusTo(hqLoc) >= 25 && radiusTo(hqLoc) <= 28 && !isCenter && isRefinery) {
+            if (radiusTo(hqLoc) >= 16 && radiusTo(hqLoc) <= 24 && !isCenter && isRefinery) {
                 tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
             }
         }
