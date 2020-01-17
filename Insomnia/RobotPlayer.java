@@ -196,19 +196,7 @@ public strictfp class RobotPlayer {
         }
 
     }
-//            if (!isRefinery) {
-//        RobotInfo[] robots = rc.senseNearbyRobots();
-//        for (RobotInfo robot : robots) {
-//            if (robot.type == RobotType.REFINERY && robot.team == rc.getTeam()) {
-//                isRefinery = true;
-//                refLoc = robot.location;
-//            }
-//        }
-//        //If Refinery doesn't exist and robot is in a set radius around the HQ, create a Refinery
-//        if (radiusTo(hqLoc) >= 36 && radiusTo(hqLoc) <= 60 && !isRefinery) {
-//            tryBuild(RobotType.REFINERY, dirTo(hqLoc).opposite());
-//        }
-//    }
+
     static void runMiner() throws GameActionException {
         chainScan();
 
@@ -242,9 +230,23 @@ public strictfp class RobotPlayer {
             //^^CHOSEN ONE CODE^^//
         }else {
             //Try mining in all directions
-            if(vapeCount<3 && rc.getLocation().distanceSquaredTo(hqLoc)>4){
+            if (!isRefinery) {
+                RobotInfo[] robots = rc.senseNearbyRobots();
+                for (RobotInfo robot : robots) {
+                    if (robot.type == RobotType.REFINERY && robot.team == rc.getTeam()) {
+                        isRefinery = true;
+                        refLoc = robot.location;
+                    }
+                }
+                //If Refinery doesn't exist and robot is in a set radius around the HQ, create a Refinery
+                if (radiusTo(hqLoc) >= 8 && !isRefinery) {
+                    tryBuild(RobotType.REFINERY, dirTo(hqLoc).opposite());
+                }
+            }
+            if(vapeCount<3 && rc.getLocation().distanceSquaredTo(hqLoc)>8){
                 tryBuild(RobotType.VAPORATOR,dirTo(hqLoc).opposite());
             }
+
             for (Direction dir : directions) {
                 if (tryMine(dir)) {
                     lastSoup = rc.getLocation().add(dir);
@@ -297,7 +299,7 @@ public strictfp class RobotPlayer {
 
     static void runFulfillmentCenter() throws GameActionException {
         int droneLimit = 50; // This is a temporary drone limit.
-        if (droneCount < droneLimit) {
+        if (droneCount < droneLimit && rc.getTeamSoup()>200) {
             if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
                 droneCount++;
             }
