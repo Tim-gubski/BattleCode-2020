@@ -141,14 +141,17 @@ public strictfp class RobotPlayer {
                 minerCount++;
             }
         }
-        RobotInfo[] robots = rc.senseNearbyRobots(GameConstants.NET_GUN_SHOOT_RADIUS_SQUARED);
+        RobotInfo[] robots = rc.senseNearbyRobots();
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
                 rc.shootUnit(robot.getID());
             }
             if (!isChosenOne && robot.getType() == RobotType.DELIVERY_DRONE && rc.getTeam() == robot.team) {
+                System.out.println("Trying to designate chosen drone");
                 if (trySendChain("69", robot.getID())) {
+                    trySendChain("69", robot.getID());
                     isChosenOne = true;
+                    System.out.println("Designated drone " + robot.getID());
                 }
 
             }
@@ -305,9 +308,12 @@ public strictfp class RobotPlayer {
             }
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
-                if (robot.getType() == RobotType.HQ && robot.team == rc.getTeam().opponent()) {
-                    trySendChain("420", robot.location.x, robot.location.y);
-                    isChosenOne = false;
+                if (robot.getType() == RobotType.HQ && robot.team == enemy) {
+                    if (trySendChain("420", robot.location.x, robot.location.y)) {
+                        trySendChain("420", robot.location.x, robot.location.y);
+                        isChosenOne = false;
+                    }
+
                 }
             }
         } else {
@@ -617,7 +623,6 @@ public strictfp class RobotPlayer {
      - 273 <--> tryChainRefinery (Determines whether or not there is a Refinery built)
      - 420 <--> tryChainEnemy    (Determines whether or not the enemy HQ Location is known)
      */
-    
     static boolean trySendChain(String chainType, int id) throws GameActionException {
         String message = null;
         String falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
@@ -633,6 +638,7 @@ public strictfp class RobotPlayer {
         if (chainType.equals("69")) {
             message = chainType + String.format("%05d", id);
         }
+
         if (message == null) {
             return false;
         }
@@ -680,7 +686,7 @@ public strictfp class RobotPlayer {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
         if (message == null) {
-             return false;
+            return false;
         }
         trans[0] = Integer.parseInt(message);
         trans[1] = Integer.parseInt(falseMsg);
@@ -767,8 +773,8 @@ public strictfp class RobotPlayer {
             integers[i] = Integer.parseInt(integerStrings[i]);
             //Parses the integer for each string.
         }
-        if (rc.canSubmitTransaction(integers, 5)) {
-            rc.submitTransaction(integers, 5);
+        if (rc.canSubmitTransaction(integers, 2)) {
+            rc.submitTransaction(integers, 2);
             return true;
         }
         return false;
