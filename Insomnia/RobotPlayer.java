@@ -28,6 +28,7 @@ public strictfp class RobotPlayer {
     static int droneCount;
     static int mapHeight;
     static int mapWidth;
+    static int seppukuCount = 0;
     static int hqX1;
     static int hqX2;
     static int hqX3;
@@ -205,36 +206,37 @@ public strictfp class RobotPlayer {
 //            tryBuild(RobotType.REFINERY, dirTo(hqLoc).opposite());
 //        }
 //    }
+
     static void runMiner() throws GameActionException {
         chainScan();
 
-        if(isChosenMiner){
+        if (isChosenMiner) {
 
 ////        VAPES!!!
 //        if (radiusTo(hqLoc) >= 45 && radiusTo(hqLoc) <= 98 && rc.getRoundNum() <= 520) {
 //            tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
 //        }
             //Check if design school has been created
-            if (!takeStep){
+            if (!takeStep) {
                 moveTowards(dirTo(hqLoc).opposite());
                 takeStep = true;
             }
             if (!isSchool) {
-                    if(tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc).opposite())){
-                        isSchool = true;
-                    }
+                if (tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc).opposite())) {
+                    isSchool = true;
+                }
             }
             //Check if fulfillment center has been created
             if (!isCenter) {
-                    if (tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc).opposite())){
-                        isCenter = true;
-                    }
+                if (tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc).opposite())) {
+                    isCenter = true;
+                }
             }
-            if(isCenter && isSchool ){
-                isChosenMiner=false;
+            if (isCenter && isSchool) {
+                isChosenMiner = false;
             }
             //^^CHOSEN ONE CODE^^//
-        }else {
+        } else {
             //Try mining in all directions
             for (Direction dir : directions) {
                 if (tryMine(dir)) {
@@ -292,9 +294,11 @@ public strictfp class RobotPlayer {
     static void runFulfillmentCenter() throws GameActionException {
         int droneLimit = 50; // This is a temporary drone limit.
         if (droneCount < droneLimit) {
-            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
-                droneCount++;
-            }
+
+                if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+                    droneCount++;
+                }
+            
         }
     }
 
@@ -406,15 +410,25 @@ public strictfp class RobotPlayer {
                 for (RobotInfo robot : robots) {
                     if (robot.getType() == RobotType.MINER || robot.getType() == RobotType.LANDSCAPER) {
                         if (rc.canPickUpUnit(robot.getID())) {
-                                rc.pickUpUnit(robot.getID());
-                                break;
-                            } else {
+                            rc.pickUpUnit(robot.getID());
+                            break;
+                        } else {
                             droneMoveTowards(rc.senseRobot(robot.getID()).location);
                         }
                     }
                 }
             } else {
-                droneMoveTowards(hqLoc);
+                if (rc.getLocation().isAdjacentTo(hqLoc)) {
+                    droneMoveTowards(dirTo(hqLoc).opposite());
+                    seppukuCount++;
+                    if (seppukuCount >= 7) {
+                        rc.disintegrate();
+                    }
+                } else {
+                    droneSwarmAround(hqLoc);
+                    seppukuCount = 0;
+                }
+
             }
         }
 
@@ -626,7 +640,7 @@ public strictfp class RobotPlayer {
     }
 
     static boolean droneMoveTowards(Direction dir) throws GameActionException {
-        if (rc.getRoundNum()%30>15) {
+        if (rc.getRoundNum() % 30 > 15) {
             if (tryDroneMove(dir)) {
                 return true;
             } else if (tryDroneMove(dir.rotateRight())) {
@@ -640,7 +654,7 @@ public strictfp class RobotPlayer {
             } else {
                 return false;
             }
-        }else{
+        } else {
             if (tryDroneMove(dir)) {
                 return true;
             } else if (tryDroneMove(dir.rotateLeft())) {
@@ -651,7 +665,7 @@ public strictfp class RobotPlayer {
                 return true;
             } else if (tryDroneMove(dir.rotateRight().rotateRight())) {
                 return true;
-            }  else {
+            } else {
                 return false;
             }
         }
