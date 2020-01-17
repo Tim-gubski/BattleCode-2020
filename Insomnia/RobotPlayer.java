@@ -73,15 +73,15 @@ public strictfp class RobotPlayer {
         }
 
         if (rc.getType() == RobotType.DESIGN_SCHOOL) {
-            trySendChain("774");
+            trySendChain("774", rc.getLocation().x, rc.getLocation().y);
             //tryChainSchool(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.FULFILLMENT_CENTER) {
-            trySendChain("666");
+            trySendChain("666", rc.getLocation().x, rc.getLocation().y);
             //tryChainCenter(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.REFINERY) {
-            trySendChain("273");
+            trySendChain("273", rc.getLocation().x, rc.getLocation().y);
             //tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
         }
 
@@ -562,20 +562,7 @@ public strictfp class RobotPlayer {
      - 273 <--> tryChainRefinery (Determines whether or not there is a Refinery built)
      - 420 <--> tryChainEnemy    (Determines whether or not the enemy HQ Location is known)
      */
-    static void trySendChain(String chainType, String id, int x, int y) throws GameActionException {
-        int[] trans = {
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-        };
-        
-    }
-    
-    static void trySendChain(String chainType) throws GameActionException {
+    static void trySendChain(String chainType, int x, int y) throws GameActionException {
         String message = null;
         String falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
         int[] trans = {
@@ -588,13 +575,16 @@ public strictfp class RobotPlayer {
             0
         };
         if (chainType.equals("774")) {
-            message = chainType + String.format("%04d", (int)(Math.random() * 1000));
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
         if (chainType.equals("666")) {
-            message = chainType + String.format("%04d", (int)(Math.random() * 1000));
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
         if (chainType.equals("273")) {
-            message = chainType + String.format("%04d", (int)(Math.random() * 1000));
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
+        }
+        if (chainType.equals("420")) {
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
         if (message == null) {
             return;
@@ -615,8 +605,9 @@ public strictfp class RobotPlayer {
         if (rc.canSubmitTransaction(trans, 5)) {
             rc.submitTransaction(trans, 5);
         }
+        
     }
-
+    
     static void chainScan() throws GameActionException {
         Transaction[] trans = rc.getBlock(rc.getRoundNum() - 1);
         int loop = 0;
