@@ -317,31 +317,32 @@ public strictfp class RobotPlayer {
                 }
             }
         } else {
-            // Code here for peasant drones
-            if (!rc.isCurrentlyHoldingUnit()) {
-                // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-                RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
-                if (enemies.length > 0) {
-                    // Pick up a first robot within range
-                    for (RobotInfo robot : enemies) {
-                        if (robot.getType() == RobotType.LANDSCAPER) {
-                            if (rc.canPickUpUnit(robot.getID())) {
-                                rc.pickUpUnit(robot.getID());
-                                break;
-                            } else {
-                                droneMoveTowards(robot.location);
-                            }
-                        }
-                    }
-                } else if (enemyHQ != null) {
-                    droneMoveTowards(enemyHQ);
-                } else {
-                    droneMoveTowards(mapMid);
-                }
-            }
+            droneMoveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH));
         }
     }
-
+//// Code here for peasant drones
+//            if (!rc.isCurrentlyHoldingUnit()) {
+//        // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
+//        RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
+//        if (enemies.length > 0) {
+//            // Pick up a first robot within range
+//            for (RobotInfo robot : enemies) {
+//                if (robot.getType() == RobotType.LANDSCAPER) {
+//                    if (rc.canPickUpUnit(robot.getID())) {
+//                        rc.pickUpUnit(robot.getID());
+//                        break;
+//                    } else {
+//                        droneMoveTowards(robot.location);
+//                    }
+//                }
+//            }
+//        } else if (enemyHQ != null) {
+//            droneMoveTowards(enemyHQ);
+//        } else {
+//            droneMoveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH));
+//        }
+//    }
+//}
     static void runNetGun() throws GameActionException {
 
     }
@@ -455,7 +456,6 @@ public strictfp class RobotPlayer {
             return false;
         }
         if (droneMoveTowards(dirTo(loc))) {
-            droneMoveTowards(dirTo(loc));
             return true;
         } else {
             return false;
@@ -625,6 +625,7 @@ public strictfp class RobotPlayer {
         if (chainType.equals("273")) {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
+        //Enemy HQ Found
         if (chainType.equals("420")) {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
