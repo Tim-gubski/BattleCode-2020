@@ -9,17 +9,17 @@ public strictfp class RobotPlayer {
     static RobotController rc;
 
     static Direction[] directions = {
-            Direction.NORTH,
-            Direction.NORTHEAST,
-            Direction.EAST,
-            Direction.SOUTHEAST,
-            Direction.SOUTH,
-            Direction.SOUTHWEST,
-            Direction.WEST,
-            Direction.NORTHWEST
+        Direction.NORTH,
+        Direction.NORTHEAST,
+        Direction.EAST,
+        Direction.SOUTHEAST,
+        Direction.SOUTH,
+        Direction.SOUTHWEST,
+        Direction.WEST,
+        Direction.NORTHWEST
     };
     static RobotType[] spawnedByMiner = {RobotType.REFINERY, RobotType.VAPORATOR, RobotType.DESIGN_SCHOOL,
-            RobotType.FULFILLMENT_CENTER, RobotType.NET_GUN};
+        RobotType.FULFILLMENT_CENTER, RobotType.NET_GUN};
 
     //Variable Declaration/Initialization
     static int turnCount;
@@ -42,6 +42,7 @@ public strictfp class RobotPlayer {
     static MapLocation lastSoup;
     static MapLocation mapMid;
     static MapLocation[] hqBorder = new MapLocation[8];
+    static MapLocation[] robotBorder = new MapLocation[8];
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
@@ -65,7 +66,7 @@ public strictfp class RobotPlayer {
         turnCount = 0;
 
         if (hqLoc == null) {
-            if(rc.getType()==RobotType.HQ){
+            if (rc.getType() == RobotType.HQ) {
                 hqLoc = rc.getLocation();
             }
             RobotInfo[] robots = rc.senseNearbyRobots();
@@ -106,6 +107,15 @@ public strictfp class RobotPlayer {
             hqBorder[6] = new MapLocation(hqLoc.x - 1, hqLoc.y);
             hqBorder[7] = new MapLocation(hqLoc.x - 1, hqLoc.y + 1);
         }
+
+        robotBorder[0] = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
+        robotBorder[1] = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y + 1);
+        robotBorder[2] = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y);
+        robotBorder[3] = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y - 1);
+        robotBorder[4] = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
+        robotBorder[5] = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y - 1);
+        robotBorder[6] = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y);
+        robotBorder[7] = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y + 1);
 
         while (true) {
             turnCount += 1;
@@ -177,7 +187,7 @@ public strictfp class RobotPlayer {
                 }
 
             }
-            if(rc.getRoundNum() > 20 && rc.getTeamSoup() > 800 && !isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team){
+            if (rc.getRoundNum() > 20 && rc.getTeamSoup() > 800 && !isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team) {
                 if (trySendChain("96", robot.getID())) {
                     isChosenMiner = true;
                 }
@@ -188,7 +198,7 @@ public strictfp class RobotPlayer {
 
     static void runMiner() throws GameActionException {
         chainScan();
-        if(isChosenMiner){
+        if (isChosenMiner) {
             if (!isRefinery) {
                 RobotInfo[] robots = rc.senseNearbyRobots();
                 for (RobotInfo robot : robots) {
@@ -235,8 +245,8 @@ public strictfp class RobotPlayer {
                     tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
                 }
             }
-            if(isCenter && isSchool && isRefinery){
-                isChosenMiner=false;
+            if (isCenter && isSchool && isRefinery) {
+                isChosenMiner = false;
             }
             moveTowards(dirTo(hqLoc).opposite());
         }
@@ -306,7 +316,7 @@ public strictfp class RobotPlayer {
     }
 
     static void runLandscaper() throws GameActionException {
-        if(hqLoc == null){
+        if (hqLoc == null) {
             System.out.println("Im peeing");
         }
         if (!layerFilled && rc.canSenseLocation(hqLoc.add(dirTo(hqLoc)))) {
@@ -336,11 +346,10 @@ public strictfp class RobotPlayer {
 
     static void runDeliveryDrone() throws GameActionException {
         chainScan();
-        boolean loopBroke = false;
         Team enemy = rc.getTeam().opponent();
         MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
-                new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
-                new MapLocation(hqLoc.x, rc.getMapHeight() - hqLoc.y)};
+            new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
+            new MapLocation(hqLoc.x, rc.getMapHeight() - hqLoc.y)};
         if (isChosenOne && rc.getRoundNum() > 750) {
             droneMoveTowards(targets[currentTarget]);
             if (rc.getLocation().equals(targets[currentTarget])) {
@@ -355,18 +364,18 @@ public strictfp class RobotPlayer {
 
                 }
             }
-        } else if(isChosenOne) {
+        } else if (isChosenOne) {
             droneMoveTowards(mapMid);
         }
 
         // wait till round 750 and until you know where enemy hq is
-        if (!isChosenOne && rc.getRoundNum()>750 && enemyHQKnown) {
+        if (!isChosenOne && rc.getRoundNum() > 750 && enemyHQKnown) {
             // run if you havent captured a landscaper yet
             if (!rc.isCurrentlyHoldingUnit()) {
                 //scan for robots
-                RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(),enemy);
+                RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
                 //if any robots were found and round is above 1000
-                if (robots.length > 0 && rc.getRoundNum()>900) {
+                if (robots.length > 0 && rc.getRoundNum() > 1000) {
                     boolean noLandscapers = true;
                     int closestID = 0;
                     int closestDistance = 1000;
@@ -381,31 +390,49 @@ public strictfp class RobotPlayer {
                                 break;
                             }
                             //find the closest landscaper
-                            if (rc.getLocation().distanceSquaredTo(robot.location)<closestDistance){
-                                closestDistance=rc.getLocation().distanceSquaredTo(robot.location);
+                            if (rc.getLocation().distanceSquaredTo(robot.location) < closestDistance) {
+                                closestDistance = rc.getLocation().distanceSquaredTo(robot.location);
                                 closestID = robot.ID;
                             }
                         }
                     }
                     // go to the closest landscaper
-                    if(closestID!= 0){
+                    if (closestID != 0) {
                         droneMoveTowards(rc.senseRobot(closestID).location);
                     }
                     //if you couldn't find any landscapers go to the enemyHQ
-                    if(noLandscapers){
+                    if (noLandscapers) {
                         droneSwarmAround(enemyHQ);
                     }
-                // if no robots found swarm around enemy HQ
-                }else{
+                    // if no robots found swarm around enemy HQ
+                } else {
                     droneSwarmAround(enemyHQ);
                 }
-            // if robot picked up the run the hell away
-            }else{
-                droneMoveTowards(dirTo(enemyHQ).opposite());
+                // if robot picked up the run the hell away
+            } else {
+                if (rc.senseFlooding(new MapLocation(rc.getLocation().x, rc.getLocation().y + 1)) && rc.canDropUnit(dirTo(new MapLocation(rc.getLocation().x, rc.getLocation().y + 1)))) {
+                    rc.dropUnit(dirTo(robotBorder[0]));
+                } else if (rc.senseFlooding(new MapLocation(rc.getLocation().x, rc.getLocation().y - 1)) && rc.canDropUnit(dirTo(new MapLocation(rc.getLocation().x, rc.getLocation().y - 1)))) {
+                    droneMoveTowards(dirTo(enemyHQ).opposite());
+                }
             }
-        // Huddle in the middle till the time comes
-        } else if(!isChosenOne){
-            droneMoveTowards(mapMid);
+            // Huddle in the middle till the time comes
+        } else if (!isChosenOne) {
+            RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
+            if (robots.length > 0) {
+                for (RobotInfo robot : robots) {
+                    if (robot.getType() == RobotType.MINER || robot.getType() == RobotType.LANDSCAPER) {
+                        if (rc.canPickUpUnit(robot.getID())) {
+                                rc.pickUpUnit(robot.getID());
+                                break;
+                            } else {
+                            droneMoveTowards(rc.senseRobot(robot.getID()).location);
+                        }
+                    }
+                }
+            } else {
+                droneMoveTowards(hqLoc);
+            }
         }
 
     }
@@ -481,6 +508,7 @@ public strictfp class RobotPlayer {
             return null;
         }
     }
+
     static int trySenseSoup(MapLocation loc) throws GameActionException {
         if (rc.isReady() && rc.canSenseLocation(loc)) {
             return rc.senseSoup(loc);
@@ -521,7 +549,7 @@ public strictfp class RobotPlayer {
     }
 
     static boolean moveTowards(Direction dir) throws GameActionException {
-        if (rc.getRoundNum()%30>15) {
+        if (rc.getRoundNum() % 30 > 15) {
             if (tryMove(dir)) {
                 return true;
             } else if (tryMove(dir.rotateRight())) {
@@ -538,10 +566,10 @@ public strictfp class RobotPlayer {
                 return true;
             } else if (tryMove(dir.opposite())) {
                 return true;
-            } else{
+            } else {
                 return false;
             }
-        } else{
+        } else {
             if (tryMove(dir)) {
                 return true;
             } else if (tryMove(dir.rotateLeft())) {
@@ -565,35 +593,42 @@ public strictfp class RobotPlayer {
     }
 
     static boolean droneSwarmAround(MapLocation loc) throws GameActionException {
-        if(!rc.getLocation().add(dirTo(loc)).isWithinDistanceSquared(loc,RobotType.NET_GUN.sensorRadiusSquared)){
-            if (tryDroneMove(dirTo(loc))){
+        if (!rc.getLocation().add(dirTo(loc)).isWithinDistanceSquared(loc, RobotType.NET_GUN.sensorRadiusSquared)) {
+            if (tryDroneMove(dirTo(loc))) {
                 return true;
             }
-        }if(!rc.getLocation().add(dirTo(loc).rotateRight()).isWithinDistanceSquared(loc,RobotType.NET_GUN.sensorRadiusSquared)){
-            if (tryDroneMove(dirTo(loc).rotateRight())){
+        }
+        if (!rc.getLocation().add(dirTo(loc).rotateRight()).isWithinDistanceSquared(loc, RobotType.NET_GUN.sensorRadiusSquared)) {
+            if (tryDroneMove(dirTo(loc).rotateRight())) {
                 return true;
             }
-        }if(!rc.getLocation().add(dirTo(loc).rotateRight().rotateRight()).isWithinDistanceSquared(loc,RobotType.NET_GUN.sensorRadiusSquared)){
-            if (tryDroneMove(dirTo(loc).rotateRight().rotateRight())){
+        }
+        if (!rc.getLocation().add(dirTo(loc).rotateRight().rotateRight()).isWithinDistanceSquared(loc, RobotType.NET_GUN.sensorRadiusSquared)) {
+            if (tryDroneMove(dirTo(loc).rotateRight().rotateRight())) {
                 return true;
             }
-        }if(!rc.getLocation().add(dirTo(loc).rotateLeft()).isWithinDistanceSquared(loc,RobotType.NET_GUN.sensorRadiusSquared)){
-            if (tryDroneMove(dirTo(loc).rotateLeft())){
+        }
+        if (!rc.getLocation().add(dirTo(loc).rotateLeft()).isWithinDistanceSquared(loc, RobotType.NET_GUN.sensorRadiusSquared)) {
+            if (tryDroneMove(dirTo(loc).rotateLeft())) {
                 return true;
             }
-        }if(!rc.getLocation().add(dirTo(loc).rotateLeft().rotateLeft()).isWithinDistanceSquared(loc,RobotType.NET_GUN.sensorRadiusSquared)){
-            if (tryDroneMove(dirTo(loc).rotateLeft().rotateLeft())){
+        }
+        if (!rc.getLocation().add(dirTo(loc).rotateLeft().rotateLeft()).isWithinDistanceSquared(loc, RobotType.NET_GUN.sensorRadiusSquared)) {
+            if (tryDroneMove(dirTo(loc).rotateLeft().rotateLeft())) {
                 return true;
             }
-        }if(!rc.getLocation().add(dirTo(loc).rotateRight().rotateRight().rotateRight()).isWithinDistanceSquared(loc,RobotType.NET_GUN.sensorRadiusSquared)){
-            if (tryDroneMove(dirTo(loc).rotateRight().rotateRight().rotateRight())){
+        }
+        if (!rc.getLocation().add(dirTo(loc).rotateRight().rotateRight().rotateRight()).isWithinDistanceSquared(loc, RobotType.NET_GUN.sensorRadiusSquared)) {
+            if (tryDroneMove(dirTo(loc).rotateRight().rotateRight().rotateRight())) {
                 return true;
             }
-        }if(!rc.getLocation().add(dirTo(loc).rotateLeft().rotateLeft().rotateLeft()).isWithinDistanceSquared(loc,RobotType.NET_GUN.sensorRadiusSquared)){
-            if (tryDroneMove(dirTo(loc).rotateLeft().rotateLeft().rotateLeft())){
+        }
+        if (!rc.getLocation().add(dirTo(loc).rotateLeft().rotateLeft().rotateLeft()).isWithinDistanceSquared(loc, RobotType.NET_GUN.sensorRadiusSquared)) {
+            if (tryDroneMove(dirTo(loc).rotateLeft().rotateLeft().rotateLeft())) {
                 return true;
             }
-        }return false;
+        }
+        return false;
     }
 
     static boolean droneMoveTowards(MapLocation loc) throws GameActionException {
@@ -675,19 +710,19 @@ public strictfp class RobotPlayer {
         if (rc.isReady() && rc.canDigDirt(dir)) {
             rc.digDirt(dir);
             return true;
-        } else if(rc.isReady() && rc.canDigDirt(dir.rotateRight())){
+        } else if (rc.isReady() && rc.canDigDirt(dir.rotateRight())) {
             rc.digDirt(dir.rotateRight());
             return true;
-        } else if(rc.isReady() && rc.canDigDirt(dir.rotateLeft())){
+        } else if (rc.isReady() && rc.canDigDirt(dir.rotateLeft())) {
             rc.digDirt(dir.rotateLeft());
             return true;
-        } else if(rc.isReady() && rc.canDigDirt(dir.rotateRight().rotateRight())){
+        } else if (rc.isReady() && rc.canDigDirt(dir.rotateRight().rotateRight())) {
             rc.digDirt(dir.rotateRight());
             return true;
-        } else if(rc.isReady() && rc.canDigDirt(dir.rotateLeft().rotateLeft())){
+        } else if (rc.isReady() && rc.canDigDirt(dir.rotateLeft().rotateLeft())) {
             rc.digDirt(dir.rotateRight());
             return true;
-        }else{
+        } else {
             return false;
         }
 
@@ -846,7 +881,7 @@ public strictfp class RobotPlayer {
         }
     }
 
-    static void hqChainScan() throws GameActionException{
+    static void hqChainScan() throws GameActionException {
         Transaction[] trans = rc.getBlock(1);
         int loop = 0;
         for (Transaction tran : trans) {
@@ -857,90 +892,6 @@ public strictfp class RobotPlayer {
                 hqLoc = new MapLocation(Integer.parseInt(x), Integer.parseInt(y));
             }
             loop++;
-        }
-    }
-
-    static void tryChainSchool(int x, int y) throws GameActionException {
-        String message = "069" + String.format("%02d", x) + String.format("%02d", y);
-        // The string you want to be an integer array.
-        String[] integerStrings = message.split("");
-        // Splits each spaced integer into a String array.
-        int[] integers = new int[integerStrings.length];
-        // Creates the integer array.
-        for (int i = 0; i < integers.length; i++) {
-            integers[i] = Integer.parseInt(integerStrings[i]);
-            //Parses the integer for each string.
-        }
-        if (rc.canSubmitTransaction(integers, 2)) {
-            rc.submitTransaction(integers, 2);
-        }
-    }
-
-    static boolean iChooseYou(int id) throws GameActionException {
-        String message = "69" + Integer.toString(id);
-        // The string you want to be an integer array.
-        String[] integerStrings = message.split("");
-        // Splits each spaced integer into a String array.
-        int[] integers = new int[integerStrings.length];
-        // Creates the integer array.
-        for (int i = 0; i < integers.length; i++) {
-            integers[i] = Integer.parseInt(integerStrings[i]);
-            //Parses the integer for each string.
-        }
-        if (rc.canSubmitTransaction(integers, 2)) {
-            rc.submitTransaction(integers, 2);
-            return true;
-        }
-        return false;
-    }
-
-    static void tryChainCenter(int x, int y) throws GameActionException {
-        String message = "666" + String.format("%02d", x) + String.format("%02d", y);
-        // The string you want to be an integer array.
-        String[] integerStrings = message.split("");
-        // Splits each spaced integer into a String array.
-        int[] integers = new int[integerStrings.length];
-        // Creates the integer array.
-        for (int i = 0; i < integers.length; i++) {
-            integers[i] = Integer.parseInt(integerStrings[i]);
-            //Parses the integer for each string.
-        }
-        if (rc.canSubmitTransaction(integers, 2)) {
-            rc.submitTransaction(integers, 2);
-        }
-    }
-
-    static boolean tryChainEnemy(int x, int y) throws GameActionException {
-        String message = "420" + String.format("%02d", x) + String.format("%02d", y);
-        // The string you want to be an integer array.
-        String[] integerStrings = message.split("");
-        // Splits each spaced integer into a String array.
-        int[] integers = new int[integerStrings.length];
-        // Creates the integer array.
-        for (int i = 0; i < integers.length; i++) {
-            integers[i] = Integer.parseInt(integerStrings[i]);
-            //Parses the integer for each string.
-        }
-        if (rc.canSubmitTransaction(integers, 2)) {
-            rc.submitTransaction(integers, 2);
-            return true;
-        }
-        return false;
-    }
-
-    static void tryChainRefinery(int x, int y) throws GameActionException {
-        String message = "273" + String.format("%02d", x) + String.format("%02d", y);
-        // The string you want to be an integer array.
-        String[] integerStrings = message.split("");
-        // Splits each spaced integer into a String array.
-        int[] integers = new int[integerStrings.length];
-        // Creates the integer array.
-        for (int i = 0; i < integers.length; i++) {
-            integers[i] = Integer.parseInt(integerStrings[i]);
-            //Parses the integer for each string.
-        }
-        if (rc.canSubmitTransaction(integers, 2)) {
-            rc.submitTransaction(integers, 2);
         }
     }
 }
