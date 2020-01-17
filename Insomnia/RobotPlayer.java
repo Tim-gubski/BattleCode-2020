@@ -153,7 +153,6 @@ public strictfp class RobotPlayer {
                 if (trySendChain("69", robot.getID())) {
                     trySendChain("69", robot.getID());
                     isChosenOne = true;
-                    System.out.println("Designated drone " + robot.getID());
                 }
 
             }
@@ -581,7 +580,7 @@ public strictfp class RobotPlayer {
             0
         };
         if (chainType.equals("69")) {
-            message = chainType + String.format("%05d", id);
+            message = chainType + id;
         }
 
         if (message == null) {
@@ -589,20 +588,19 @@ public strictfp class RobotPlayer {
         }
         trans[0] = Integer.parseInt(message);
         trans[1] = Integer.parseInt(falseMsg);
-        falseMsg = 12 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 12 + String.format("%05d", (int)(Math.random() * 10000));
         trans[2] = Integer.parseInt(falseMsg);
-        falseMsg = 13 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 13 + String.format("%05d", (int)(Math.random() * 10000));
         trans[3] = Integer.parseInt(falseMsg);
-        falseMsg = 18 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 18 + String.format("%05d", (int)(Math.random() * 10000));
         trans[4] = Integer.parseInt(falseMsg);
-        falseMsg = 95 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 95 + String.format("%05d", (int)(Math.random() * 10000));
         trans[5] = Integer.parseInt(falseMsg);
-        falseMsg = 54 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 54 + String.format("%05d", (int)(Math.random() * 10000));
         trans[6] = Integer.parseInt(falseMsg);
-        
-        if (rc.canSubmitTransaction(trans, 5)) {
-            rc.submitTransaction(trans, 5);
-        }
+        System.out.println("Trying to send transaction...");
+        rc.submitTransaction(trans, 6);
+
         return true;
     }
     
