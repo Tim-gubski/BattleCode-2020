@@ -73,13 +73,16 @@ public strictfp class RobotPlayer {
         }
 
         if (rc.getType() == RobotType.DESIGN_SCHOOL) {
-            tryChainSchool(rc.getLocation().x, rc.getLocation().y);
+            trySendChain("069");
+            //tryChainSchool(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.FULFILLMENT_CENTER) {
-            tryChainCenter(rc.getLocation().x, rc.getLocation().y);
+            trySendChain("666");
+            //tryChainCenter(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.REFINERY) {
-            tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
+            trySendChain("273");
+            //tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
         }
 
         while (true) {
@@ -598,15 +601,15 @@ public strictfp class RobotPlayer {
         }
         trans[0] = Integer.parseInt(message);
         trans[1] = Integer.parseInt(falseMsg);
-        falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
+        falseMsg = 05 + String.format("%05d", (int)(Math.random() * 100000));
         trans[2] = Integer.parseInt(falseMsg);
-        falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
+        falseMsg = 13 + String.format("%05d", (int)(Math.random() * 100000));
         trans[3] = Integer.parseInt(falseMsg);
-        falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
+        falseMsg = 11 + String.format("%05d", (int)(Math.random() * 100000));
         trans[4] = Integer.parseInt(falseMsg);
-        falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
+        falseMsg = 00 + String.format("%05d", (int)(Math.random() * 100000));
         trans[5] = Integer.parseInt(falseMsg);
-        falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
+        falseMsg = 55 + String.format("%05d", (int)(Math.random() * 100000));
         trans[6] = Integer.parseInt(falseMsg);
         
         if (rc.canSubmitTransaction(trans, 5)) {
