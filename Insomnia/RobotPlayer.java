@@ -149,7 +149,7 @@ public strictfp class RobotPlayer {
                 rc.shootUnit(robot.getID());
             }
             if (!isChosenOne && robot.getType() == RobotType.DELIVERY_DRONE && rc.getTeam() == robot.team) {
-                if (trySendChain("69", robot.getID())) {
+                if (iChooseYou(robot.getID())) {
                     isChosenOne = true;
                 }
 
@@ -311,7 +311,7 @@ public strictfp class RobotPlayer {
                         trySendChain("420", robot.location.x, robot.location.y);
                         isChosenOne = false;
                     }
-                    
+
                 }
             }
         } else {
@@ -565,44 +565,6 @@ public strictfp class RobotPlayer {
      - 273 <--> tryChainRefinery (Determines whether or not there is a Refinery built)
      - 420 <--> tryChainEnemy    (Determines whether or not the enemy HQ Location is known)
      */
-    
-    static boolean trySendChain(String chainType, int id) throws GameActionException {
-        String message = null;
-        String falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
-        int[] trans = {
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-        };
-        if (chainType.equals("69")) {
-            message = chainType + String.format("%05d", id);
-        }
-        if (message == null) {
-            return false;
-        }
-        trans[0] = Integer.parseInt(message);
-        trans[1] = Integer.parseInt(falseMsg);
-        falseMsg = 12 + String.format("%05d", (int)(Math.random() * 100000));
-        trans[2] = Integer.parseInt(falseMsg);
-        falseMsg = 13 + String.format("%05d", (int)(Math.random() * 100000));
-        trans[3] = Integer.parseInt(falseMsg);
-        falseMsg = 18 + String.format("%05d", (int)(Math.random() * 100000));
-        trans[4] = Integer.parseInt(falseMsg);
-        falseMsg = 95 + String.format("%05d", (int)(Math.random() * 100000));
-        trans[5] = Integer.parseInt(falseMsg);
-        falseMsg = 54 + String.format("%05d", (int)(Math.random() * 100000));
-        trans[6] = Integer.parseInt(falseMsg);
-        
-        if (rc.canSubmitTransaction(trans, 5)) {
-            rc.submitTransaction(trans, 5);
-        }
-        return true;
-    }
-    
     static boolean trySendChain(String chainType, int x, int y) throws GameActionException {
         String message = null;
         String falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
@@ -628,7 +590,7 @@ public strictfp class RobotPlayer {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
         if (message == null) {
-             return false;
+            return;
         }
         trans[0] = Integer.parseInt(message);
         trans[1] = Integer.parseInt(falseMsg);
@@ -646,7 +608,7 @@ public strictfp class RobotPlayer {
         if (rc.canSubmitTransaction(trans, 5)) {
             rc.submitTransaction(trans, 5);
         }
-        return true;
+        
     }
     
     static void chainScan() throws GameActionException {
@@ -708,8 +670,8 @@ public strictfp class RobotPlayer {
             integers[i] = Integer.parseInt(integerStrings[i]);
             //Parses the integer for each string.
         }
-        if (rc.canSubmitTransaction(integers, 5)) {
-            rc.submitTransaction(integers, 5);
+        if (rc.canSubmitTransaction(integers, 2)) {
+            rc.submitTransaction(integers, 2);
             return true;
         }
         return false;
