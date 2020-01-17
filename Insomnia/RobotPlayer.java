@@ -297,7 +297,7 @@ public strictfp class RobotPlayer {
     static void runFulfillmentCenter() throws GameActionException {
         int droneLimit = 50; // This is a temporary drone limit.
         if (droneCount < droneLimit && rc.getTeamSoup() > 200) {
-            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc).opposite())) {
                 droneCount++;
             } else if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
                 droneCount++;
@@ -357,7 +357,7 @@ public strictfp class RobotPlayer {
         } else if (isChosenOne) {
             droneMoveTowards(mapMid);
         }
-
+        System.out.println(!isChosenOne && rc.getRoundNum() > 750 && enemyHQKnown);
         // wait till round 750 and until you know where enemy hq is
         if (!isChosenOne && rc.getRoundNum() > 750 && enemyHQKnown) {
             // run if you havent captured a landscaper yet
@@ -409,6 +409,7 @@ public strictfp class RobotPlayer {
             // Huddle in the middle till the time comes
         } else if (!isChosenOne) {
             RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
+            System.out.println(robots.length);
             if (robots.length > 0) {
                 for (RobotInfo robot : robots) {
                     if (robot.getType() == RobotType.MINER || robot.getType() == RobotType.LANDSCAPER) {
@@ -421,14 +422,13 @@ public strictfp class RobotPlayer {
                     }
                 }
             } else {
-                if (rc.getLocation().isAdjacentTo(hqLoc)) {
-                    droneMoveTowards(dirTo(hqLoc).opposite());
-                    seppukuCount++;
-                    if (seppukuCount >= 7) {
-                        rc.disintegrate();
+                if(currentTarget==0) {
+                    droneSwarmAround(mapMid);
+                    if(rc.getLocation().isWithinDistanceSquared(mapMid,RobotType.NET_GUN.sensorRadiusSquared+5)){
+                        currentTarget=1;
                     }
-                } else if (droneSwarmAround(hqLoc)) {
-                    seppukuCount = 0;
+                }if(currentTarget==1){
+                    droneSwarmAround(hqLoc);
                 }
 
             }
