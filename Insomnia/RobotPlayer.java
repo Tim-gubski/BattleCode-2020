@@ -297,6 +297,7 @@ public strictfp class RobotPlayer {
     static void runDeliveryDrone() throws GameActionException {
         chainScan();
 <<<<<<< HEAD
+<<<<<<< HEAD
         Team enemy = rc.getTeam().opponent();
         MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
             new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
@@ -346,6 +347,13 @@ public strictfp class RobotPlayer {
             if(rc.getLocation().isAdjacentTo(new MapLocation(0,6))){
                 rc.pickUpUnit(rc.senseRobotAtLocation(new MapLocation(0,6)).getID());
             }
+=======
+        if(isChosenOne){
+            //Put code here for chosen drone
+            if(rc.getLocation().isAdjacentTo(new MapLocation(0,6))){
+                rc.pickUpUnit(rc.senseRobotAtLocation(new MapLocation(0,6)).getID());
+            }
+>>>>>>> parent of 8cf5208... Update RobotPlayer.java
             moveTowards(new MapLocation(0,6));
         }else{
             // Code here for peasant drones
@@ -464,6 +472,7 @@ public strictfp class RobotPlayer {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     static boolean tryDroneMove(Direction dir) throws GameActionException {
         // System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " " + rc.canMove(dir));
         if (rc.isReady() && rc.canMove(dir)) {
@@ -474,6 +483,8 @@ public strictfp class RobotPlayer {
         }
     }
 
+=======
+>>>>>>> parent of 8cf5208... Update RobotPlayer.java
 =======
 >>>>>>> parent of 8cf5208... Update RobotPlayer.java
     static boolean moveTowards(MapLocation loc) throws GameActionException {
@@ -504,6 +515,7 @@ public strictfp class RobotPlayer {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     static boolean droneMoveTowards(MapLocation loc) throws GameActionException {
         if (loc == null) {
             return false;
@@ -532,6 +544,8 @@ public strictfp class RobotPlayer {
         }
     }
 
+=======
+>>>>>>> parent of 8cf5208... Update RobotPlayer.java
 =======
 >>>>>>> parent of 8cf5208... Update RobotPlayer.java
     static boolean tryBuild(RobotType type, MapLocation loc) throws GameActionException {
@@ -725,6 +739,7 @@ public strictfp class RobotPlayer {
                 refLoc = new MapLocation(Integer.parseInt(x), Integer.parseInt(y));
             }
 <<<<<<< HEAD
+<<<<<<< HEAD
             if (Integer.toString(me[loop]).substring(0, 3).equals("420")) {
                 String x = Integer.toString(me[loop]).substring(3, 5);
                 String y = Integer.toString(me[loop]).substring(5, 7);
@@ -735,6 +750,8 @@ public strictfp class RobotPlayer {
                 if (Integer.parseInt(id) == rc.getID()) {
                     isChosenOne = true;
 =======
+=======
+>>>>>>> parent of 8cf5208... Update RobotPlayer.java
             if(me[0]==6 && me[1]==9){
                 String id = Integer.toString(me[2])+Integer.toString(me[3])+Integer.toString(me[4])+Integer.toString(me[5])+Integer.toString(me[6]);
                 if (Integer.parseInt(id)==rc.getID()){
@@ -796,6 +813,7 @@ public strictfp class RobotPlayer {
         }
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     static boolean tryChainEnemy(int x, int y) throws GameActionException {
         String message = "420" + String.format("%02d", x) + String.format("%02d", y);
@@ -815,6 +833,8 @@ public strictfp class RobotPlayer {
         return false;
     }
 
+=======
+>>>>>>> parent of 8cf5208... Update RobotPlayer.java
 =======
 >>>>>>> parent of 8cf5208... Update RobotPlayer.java
     static void tryChainRefinery(int x, int y) throws GameActionException {
