@@ -41,6 +41,7 @@ public strictfp class RobotPlayer {
     static MapLocation schLoc;
     static MapLocation lastSoup;
     static MapLocation mapMid;
+    static MapLocation[] hqBorder = new MapLocation[8];
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
@@ -83,6 +84,17 @@ public strictfp class RobotPlayer {
         if (rc.getType() == RobotType.REFINERY) {
             trySendChain("273", rc.getLocation().x, rc.getLocation().y);
             //tryChainRefinery(rc.getLocation().x, rc.getLocation().y);
+        }
+
+        if (hqLoc != null) {
+            hqBorder[0] = new MapLocation(hqLoc.x, hqLoc.y + 1);
+            hqBorder[1] = new MapLocation(hqLoc.x + 1, hqLoc.y + 1);
+            hqBorder[2] = new MapLocation(hqLoc.x + 1, hqLoc.y);
+            hqBorder[3] = new MapLocation(hqLoc.x + 1, hqLoc.y - 1);
+            hqBorder[4] = new MapLocation(hqLoc.x, hqLoc.y - 1);
+            hqBorder[5] = new MapLocation(hqLoc.x - 1, hqLoc.y - 1);
+            hqBorder[6] = new MapLocation(hqLoc.x - 1, hqLoc.y);
+            hqBorder[7] = new MapLocation(hqLoc.x - 1, hqLoc.y + 1);
         }
 
         while (true) {
@@ -133,6 +145,7 @@ public strictfp class RobotPlayer {
     }
 
     static void runHQ() throws GameActionException {
+        chainScan();
         if (minerCount < 5) {
             if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
                 minerCount++;
@@ -178,7 +191,7 @@ public strictfp class RobotPlayer {
         }
 
 //        VAPES!!!
-        if (radiusTo(hqLoc) >= 45 && radiusTo(hqLoc) <= 98) {
+        if (radiusTo(hqLoc) >= 45 && radiusTo(hqLoc) <= 98 && rc.getRoundNum() <= 520) {
             tryBuild(RobotType.VAPORATOR, dirTo(hqLoc));
         }
 
@@ -193,7 +206,7 @@ public strictfp class RobotPlayer {
             }
             //If school doesn't exist and robot is in a set radius around the HQ, create a design school
             if (radiusTo(hqLoc) >= 16 && radiusTo(hqLoc) <= 24 && !isSchool && isRefinery) {
-                tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
+                    tryBuild(RobotType.DESIGN_SCHOOL, dirTo(hqLoc));
             }
         }
         //Check if fulfillment center has been created
@@ -205,7 +218,7 @@ public strictfp class RobotPlayer {
                 }
             }
             //If center doesn't exist and robot is in a set radius around the HQ, create a fulfillment center
-            if (radiusTo(hqLoc) >= 16 && radiusTo(hqLoc) <= 24 && !isCenter && isRefinery) {
+            if (radiusTo(hqLoc) >= 16 && radiusTo(hqLoc) <= 24 && !isCenter && isRefinery && isSchool) {
                 tryBuild(RobotType.FULFILLMENT_CENTER, dirTo(hqLoc));
             }
         }
@@ -264,7 +277,13 @@ public strictfp class RobotPlayer {
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-        int droneLimit = 10; // This is a temporary drone limit.
+        int droneLimit = 1; // This is a temporary drone limit.
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.VAPORATOR && robot.team == rc.getTeam()) {
+                droneLimit = 15;
+            }
+        }
         if (droneCount < droneLimit) {
             if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
                 droneCount++;
@@ -285,18 +304,31 @@ public strictfp class RobotPlayer {
             }
 
         }
+
         if (!rc.getLocation().isAdjacentTo(hqLoc)) {
-            moveTowards(hqLoc);
+            if (radiusTo(hqLoc) >= 8) {
+                for (MapLocation loc : hqBorder) {
+                    if (!rc.isLocationOccupied(loc)) {
+                        moveTowards(loc);
+                        break;
+                    }
+                }
+            } else {
+                moveTowards(hqLoc);
+            }
         }
 
-        if (layerFilled) {
-            tryDigDirt(dirTo(hqLoc).opposite());
+        if (rc.getLocation().isAdjacentTo(hqLoc)) {
+            if (tryDigDirt(dirTo(hqLoc).opposite())){
+                tryDigDirt(dirTo(hqLoc).opposite());
+            }
             tryDropDirt(rc.getLocation());
         }
     }
 
     static void runDeliveryDrone() throws GameActionException {
         chainScan();
+        boolean loopBroke = false;
         Team enemy = rc.getTeam().opponent();
         MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
             new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
@@ -316,33 +348,36 @@ public strictfp class RobotPlayer {
 
                 }
             }
-        } else {
-            droneMoveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH));
         }
+        if (!isChosenOne) {
+            if (rc.getRoundNum() < 800) {
+                RobotInfo[] robots = rc.senseNearbyRobots();
+                if (!rc.isCurrentlyHoldingUnit()) {
+                    for (RobotInfo robot : robots) {
+                        if (robot.getType() == RobotType.LANDSCAPER && robot.team == enemy) {
+                            if (rc.canPickUpUnit(robot.getID())) {
+                                rc.pickUpUnit(robot.getID());
+                                loopBroke = true;
+                                break;
+                            } else {
+                                droneMoveTowards(robot.getLocation());
+                                loopBroke = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!loopBroke) {
+                        droneMoveTowards(mapMid);
+                    }
+                }
+            } else if (rc.getRoundNum() >= 800) {
+                droneMoveTowards(enemyHQ);
+            }
+        }
+
     }
-//// Code here for peasant drones
-//            if (!rc.isCurrentlyHoldingUnit()) {
-//        // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-//        RobotInfo[] enemies = rc.senseNearbyRobots(GameConstants.DELIVERY_DRONE_PICKUP_RADIUS_SQUARED, enemy);
-//        if (enemies.length > 0) {
-//            // Pick up a first robot within range
-//            for (RobotInfo robot : enemies) {
-//                if (robot.getType() == RobotType.LANDSCAPER) {
-//                    if (rc.canPickUpUnit(robot.getID())) {
-//                        rc.pickUpUnit(robot.getID());
-//                        break;
-//                    } else {
-//                        droneMoveTowards(robot.location);
-//                    }
-//                }
-//            }
-//        } else if (enemyHQ != null) {
-//            droneMoveTowards(enemyHQ);
-//        } else {
-//            droneMoveTowards(hqLoc.add(Direction.NORTH).add(Direction.NORTH));
-//        }
-//    }
-//}
+// Code here for peasant drones
+
     static void runNetGun() throws GameActionException {
 
     }
@@ -539,6 +574,7 @@ public strictfp class RobotPlayer {
         } else {
             return false;
         }
+
     }
 
     static int trySenseElevation(MapLocation loc) throws GameActionException {
@@ -569,7 +605,7 @@ public strictfp class RobotPlayer {
      */
     static boolean trySendChain(String chainType, int id) throws GameActionException {
         String message = null;
-        String falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
+        String falseMsg = 05 + Integer.toString((int) (Math.random() * 10000));
         int[] trans = {
             0,
             0,
@@ -588,25 +624,25 @@ public strictfp class RobotPlayer {
         }
         trans[0] = Integer.parseInt(message);
         trans[1] = Integer.parseInt(falseMsg);
-        falseMsg = 12 + String.format("%05d", (int)(Math.random() * 10000));
+        falseMsg = 12 + String.format("%05d", (int) (Math.random() * 10000));
         trans[2] = Integer.parseInt(falseMsg);
-        falseMsg = 13 + String.format("%05d", (int)(Math.random() * 10000));
+        falseMsg = 13 + String.format("%05d", (int) (Math.random() * 10000));
         trans[3] = Integer.parseInt(falseMsg);
-        falseMsg = 18 + String.format("%05d", (int)(Math.random() * 10000));
+        falseMsg = 18 + String.format("%05d", (int) (Math.random() * 10000));
         trans[4] = Integer.parseInt(falseMsg);
-        falseMsg = 95 + String.format("%05d", (int)(Math.random() * 10000));
+        falseMsg = 95 + String.format("%05d", (int) (Math.random() * 10000));
         trans[5] = Integer.parseInt(falseMsg);
-        falseMsg = 54 + String.format("%05d", (int)(Math.random() * 10000));
+        falseMsg = 54 + String.format("%05d", (int) (Math.random() * 10000));
         trans[6] = Integer.parseInt(falseMsg);
         System.out.println("Trying to send transaction...");
         rc.submitTransaction(trans, 6);
 
         return true;
     }
-    
+
     static boolean trySendChain(String chainType, int x, int y) throws GameActionException {
         String message = null;
-        String falseMsg = 05 + Integer.toString((int)(Math.random() * 10000));
+        String falseMsg = 05 + Integer.toString((int) (Math.random() * 10000));
         int[] trans = {
             0,
             0,
@@ -634,23 +670,23 @@ public strictfp class RobotPlayer {
         }
         trans[0] = Integer.parseInt(message);
         trans[1] = Integer.parseInt(falseMsg);
-        falseMsg = 12 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 12 + String.format("%05d", (int) (Math.random() * 100000));
         trans[2] = Integer.parseInt(falseMsg);
-        falseMsg = 13 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 13 + String.format("%05d", (int) (Math.random() * 100000));
         trans[3] = Integer.parseInt(falseMsg);
-        falseMsg = 18 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 18 + String.format("%05d", (int) (Math.random() * 100000));
         trans[4] = Integer.parseInt(falseMsg);
-        falseMsg = 95 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 95 + String.format("%05d", (int) (Math.random() * 100000));
         trans[5] = Integer.parseInt(falseMsg);
-        falseMsg = 54 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 54 + String.format("%05d", (int) (Math.random() * 100000));
         trans[6] = Integer.parseInt(falseMsg);
-        
+
         if (rc.canSubmitTransaction(trans, 5)) {
             rc.submitTransaction(trans, 5);
         }
         return true;
     }
-    
+
     static void chainScan() throws GameActionException {
         Transaction[] trans = rc.getBlock(rc.getRoundNum() - 1);
         int loop = 0;
