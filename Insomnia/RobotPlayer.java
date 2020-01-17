@@ -73,7 +73,7 @@ public strictfp class RobotPlayer {
         }
 
         if (rc.getType() == RobotType.DESIGN_SCHOOL) {
-            trySendChain("069");
+            trySendChain("774");
             //tryChainSchool(rc.getLocation().x, rc.getLocation().y);
         }
         if (rc.getType() == RobotType.FULFILLMENT_CENTER) {
@@ -556,7 +556,7 @@ public strictfp class RobotPlayer {
     /*
     **IMPORTANT**
     List of blockchain codes!!!
-     - 069 <--> tryChainSchool   (Determines whether or not there is a Design School built)
+     - 774 <--> tryChainSchool   (Determines whether or not there is a Design School built)
      - 69  <--> iChooseYou       (Determines the Chosen Drone)
      - 666 <--> tryChainCenter   (Determines whether or not there is a Fulfillment Center built)
      - 273 <--> tryChainRefinery (Determines whether or not there is a Refinery built)
@@ -587,7 +587,7 @@ public strictfp class RobotPlayer {
             0,
             0
         };
-        if (chainType.equals("069")) {
+        if (chainType.equals("774")) {
             message = chainType + String.format("%04d", (int)(Math.random() * 1000));
         }
         if (chainType.equals("666")) {
@@ -601,15 +601,15 @@ public strictfp class RobotPlayer {
         }
         trans[0] = Integer.parseInt(message);
         trans[1] = Integer.parseInt(falseMsg);
-        falseMsg = 05 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 12 + String.format("%05d", (int)(Math.random() * 100000));
         trans[2] = Integer.parseInt(falseMsg);
         falseMsg = 13 + String.format("%05d", (int)(Math.random() * 100000));
         trans[3] = Integer.parseInt(falseMsg);
-        falseMsg = 11 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 18 + String.format("%05d", (int)(Math.random() * 100000));
         trans[4] = Integer.parseInt(falseMsg);
-        falseMsg = 00 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 95 + String.format("%05d", (int)(Math.random() * 100000));
         trans[5] = Integer.parseInt(falseMsg);
-        falseMsg = 55 + String.format("%05d", (int)(Math.random() * 100000));
+        falseMsg = 54 + String.format("%05d", (int)(Math.random() * 100000));
         trans[6] = Integer.parseInt(falseMsg);
         
         if (rc.canSubmitTransaction(trans, 5)) {
@@ -622,7 +622,7 @@ public strictfp class RobotPlayer {
         int loop = 0;
         for (Transaction tran : trans) {
             int[] me = tran.getMessage();
-            if (Integer.toString(me[loop]).substring(0, 3).equals("069")) {
+            if (Integer.toString(me[loop]).substring(0, 3).equals("774")) {
                 isSchool = true;
             }
             if (Integer.toString(me[loop]).substring(0, 3).equals("666")) {
