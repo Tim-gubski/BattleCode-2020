@@ -253,18 +253,13 @@ public strictfp class RobotPlayer {
                 if (soupLocs.length > 0) {
                     if (tryMine(dirTo(soupLocs[0]))) {
                         lastSoup = rc.getLocation().add(dirTo(soupLocs[0]));
+                        trySendChain("939", lastSoup.x, lastSoup.y);
                     } else {
                         moveTowards(dirTo(soupLocs[0]));
                     }
                 }
             } else if (lastSoup != null) {
                 moveTowards(lastSoup);
-            }
-
-            for (Direction dir : directions) {
-                if (tryMine(dir)) {
-                    lastSoup = rc.getLocation().add(dir);
-                }
             }
 
             //Try refining in all directions
@@ -888,8 +883,8 @@ public strictfp class RobotPlayer {
         falseMsg = 54 + String.format("%05d", (int) (Math.random() * 100000));
         trans[6] = Integer.parseInt(falseMsg);
 
-        if (rc.canSubmitTransaction(trans, 5)) {
-            rc.submitTransaction(trans, 5);
+        if (rc.canSubmitTransaction(trans, 1)) {
+            rc.submitTransaction(trans, 1);
         }
         return true;
     }
