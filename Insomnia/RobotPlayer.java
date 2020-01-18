@@ -47,6 +47,8 @@ public strictfp class RobotPlayer {
     static MapLocation mapMid;
     static MapLocation[] hqBorder = new MapLocation[8];
     static MapLocation[] robotBorder = new MapLocation[8];
+    static MapLocation aboveUnit;
+    static MapLocation belowUnit;
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
@@ -68,6 +70,7 @@ public strictfp class RobotPlayer {
         mapHeight = rc.getMapHeight();
         mapWidth = rc.getMapWidth();
         mapMid = new MapLocation((int) (mapWidth / 2), (int) (mapHeight / 2));
+        
         turnCount = 0;
 
         if (hqLoc == null) {
@@ -244,6 +247,7 @@ public strictfp class RobotPlayer {
             if(vapeCount<3 && rc.getLocation().distanceSquaredTo(hqLoc)>8){
                 tryBuild(RobotType.VAPORATOR,dirTo(hqLoc).opposite());
             }
+            
 
             for (Direction dir : directions) {
                 if (tryMine(dir)) {
@@ -401,9 +405,13 @@ public strictfp class RobotPlayer {
                 }
                 // if robot picked up the run the hell away
             } else {
-                if (rc.senseFlooding(new MapLocation(rc.getLocation().x, rc.getLocation().y + 1)) && rc.canDropUnit(dirTo(new MapLocation(rc.getLocation().x, rc.getLocation().y + 1)))) {
-                    rc.dropUnit(dirTo(robotBorder[0]));
-                } else if (rc.senseFlooding(new MapLocation(rc.getLocation().x, rc.getLocation().y - 1)) && rc.canDropUnit(dirTo(new MapLocation(rc.getLocation().x, rc.getLocation().y - 1)))) {
+                aboveUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
+                belowUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
+                if (rc.senseFlooding(aboveUnit) && rc.canDropUnit(dirTo(aboveUnit))) {
+                    rc.dropUnit(Direction.NORTH);
+                } else if (rc.senseFlooding(belowUnit) && rc.canDropUnit(dirTo(belowUnit))) {
+                    rc.dropUnit(Direction.SOUTH);
+                } else {
                     droneMoveTowards(dirTo(enemyHQ).opposite());
                 }
             }
@@ -844,6 +852,10 @@ public strictfp class RobotPlayer {
         }
         //Im a vape
         if (chainType.equals("877")) {
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
+        }
+        //Found soup
+        if (chainType.equals("939")) {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
         if (message == null) {
