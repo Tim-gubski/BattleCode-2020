@@ -43,6 +43,7 @@ public strictfp class RobotPlayer {
     static int vapeCount = 0;
     static int closest = 10000;
     static int steps = 0;
+    static int turtleRound = 120;
     static MapLocation hqLoc;
     static MapLocation enemyHQ;
     static ArrayList<MapLocation> refLoc = new ArrayList<>();
@@ -66,6 +67,7 @@ public strictfp class RobotPlayer {
     static boolean rushSchool = false;
     static boolean messageSent = false;
     static boolean takeStep = false;
+    static boolean turtleMiner = false;
     static Direction lastDirection;
 
     /**
@@ -176,11 +178,18 @@ public strictfp class RobotPlayer {
     }
 
     static void runHQ() throws GameActionException {
+        //build miners
         if (minerCount < 5) {
             if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
                 minerCount++;
             }
         }
+        if(rc.getRoundNum()>turtleRound && minerCount<6 && rc.getTeamSoup()>80){
+            if(tryBuild(RobotType.MINER, Direction.NORTHEAST)){
+                minerCount++;
+            }
+        }
+        //HQ Fanciness
         RobotInfo[] robots = rc.senseNearbyRobots();
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
@@ -195,6 +204,12 @@ public strictfp class RobotPlayer {
             if(!isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team){
                 if (trySendChain("96", robot.getID())) {
                     isChosenMiner = true;
+                }
+            }
+            if(!turtleMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team && robot.location.isAdjacentTo(rc.getLocation()) && rc.getRoundNum()>turtleRound){
+                if (trySendChain("11", robot.ID)) {
+                    System.out.println("chosen");
+                    turtleMiner=true;
                 }
             }
         }
@@ -252,12 +267,35 @@ public strictfp class RobotPlayer {
             }else if(!rushSchool&&rc.getLocation().isAdjacentTo(enemyHQ)){
                 swarmTo(enemyHQ);
             }else if(rc.getLocation()!=enemyHQ.add(enemyHQ.directionTo(rushSchLoc).opposite())){
-                System.out.println("im running");
                 tryMove(dirTo(enemyHQ.add(enemyHQ.directionTo(rushSchLoc).opposite())));
             }
 
         //regular code
-        }else {
+        } else if(turtleMiner){
+            if(!isSchool){
+                if(tryBuild(RobotType.DESIGN_SCHOOL,hqLoc.add(Direction.NORTHEAST))){
+                    isSchool=true;
+                    schLoc=hqLoc.add(Direction.NORTHEAST);
+                }
+                if(tryBuild(RobotType.DESIGN_SCHOOL,hqLoc.add(Direction.NORTHWEST))){
+                    isSchool=true;
+                    schLoc=hqLoc.add(Direction.NORTHWEST);
+                }
+                if(tryBuild(RobotType.DESIGN_SCHOOL,hqLoc.add(Direction.SOUTHEAST))){
+                    isSchool=true;
+                    schLoc=hqLoc.add(Direction.SOUTHEAST);
+                }
+                if(tryBuild(RobotType.DESIGN_SCHOOL,hqLoc.add(Direction.SOUTHWEST))){
+                    isSchool=true;
+                    schLoc=hqLoc.add(Direction.SOUTHWEST);
+                }
+            }else if(!isCenter){
+                if (tryBuild(RobotType.FULFILLMENT_CENTER,hqLoc.add(hqLoc.directionTo(schLoc).opposite()))){
+                    isCenter=true;
+                }
+            }
+            swarmTo(hqLoc);
+        } else {
 
             for (Direction dir : directions) {
                 if (tryMine(dir)) {
@@ -334,8 +372,14 @@ public strictfp class RobotPlayer {
         }
 
         if(rushFactory){
-            if(landscaperCount<4){
+            if(landscaperCount<4 && rc.getRoundNum()<turtleRound){
                 if(tryBuild(RobotType.LANDSCAPER,dirTo(enemyHQ))){
+                    landscaperCount++;
+                }
+            }
+        }else{
+            if(landscaperCount<14){
+                if(tryBuild(RobotType.LANDSCAPER,dirTo(hqLoc).opposite())){
                     landscaperCount++;
                 }
             }
@@ -354,14 +398,14 @@ public strictfp class RobotPlayer {
     }
 
     static void runFulfillmentCenter() throws GameActionException {
-        int droneLimit = 50; // This is a temporary drone limit.
-        if (droneCount < droneLimit && rc.getTeamSoup() > 200) {
-            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc).opposite())) {
-                droneCount++;
-            } else if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
-                droneCount++;
-            }
-        }
+//        int droneLimit = 50; // This is a temporary drone limit.
+//        if (droneCount < droneLimit && rc.getTeamSoup() > 200) {
+//            if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc).opposite())) {
+//                droneCount++;
+//            } else if (tryBuild(RobotType.DELIVERY_DRONE, dirTo(hqLoc))) {
+//                droneCount++;
+//            }
+//        }
     }
 
     static void runLandscaper() throws GameActionException {
@@ -379,9 +423,14 @@ public strictfp class RobotPlayer {
             if(!rc.getLocation().isAdjacentTo(enemyHQ)){
                 moveTowards(enemyHQ);
             }
-            tryDropDirt(enemyHQ);
-            tryDigDirt(Direction.CENTER);
+//            tryDropDirt(enemyHQ);
+//            tryDigDirt(Direction.CENTER);
+        }else{
+
         }
+
+
+
 //        if (!layerFilled && rc.canSenseLocation(hqLoc.add(dirTo(hqLoc)))) {
 //            boolean empty = false;
 //            for (Direction dir : directions) {
@@ -408,122 +457,111 @@ public strictfp class RobotPlayer {
     }
 
     static void runDeliveryDrone() throws GameActionException {
-        chainScan();
-        Team enemy = rc.getTeam().opponent();
-        MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
-            new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
-            new MapLocation(hqLoc.x, rc.getMapHeight() - hqLoc.y)};
-        if (isChosenOne && rc.getRoundNum() > 750) {
-            droneMoveTowards(targets[currentTarget]);
-            if (rc.getLocation().equals(targets[currentTarget])) {
-                currentTarget += 1;
-            }
-            RobotInfo[] robots = rc.senseNearbyRobots();
-            for (RobotInfo robot : robots) {
-                if (robot.getType() == RobotType.HQ && robot.team == enemy) {
-                    if (trySendChain("420", robot.location.x, robot.location.y)) {
-                        isChosenOne = false;
-                    }
-
-                }
-            }
-        } else if (isChosenOne) {
-            droneMoveTowards(mapMid);
-        }
-        System.out.println(!isChosenOne && rc.getRoundNum() > 750 && enemyHQKnown);
-        // wait till round 750 and until you know where enemy hq is
-        if (!isChosenOne && rc.getRoundNum() > 750 && enemyHQKnown) {
-            // run if you havent captured a landscaper yet
-            if (!rc.isCurrentlyHoldingUnit()) {
-                //scan for robots
-                RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
-                //if any robots were found and round is above 1000
-                if (robots.length > 0 && rc.getRoundNum() > 1000) {
-                    boolean noLandscapers = true;
-                    int closestID = 0;
-                    int closestDistance = 1000;
-                    //run through all robots
-                    for (RobotInfo robot : robots) {
-                        //only run if the robot found is a landscaper
-                        if (robot.getType() == RobotType.LANDSCAPER && robot.team == enemy) {
-                            noLandscapers = false;
-                            //if you can pick it up please do so
-                            if (rc.canPickUpUnit(robot.getID())) {
-                                rc.pickUpUnit(robot.getID());
-                                break;
-                            }
-                            //find the closest landscaper
-                            if (rc.getLocation().distanceSquaredTo(robot.location) < closestDistance) {
-                                closestDistance = rc.getLocation().distanceSquaredTo(robot.location);
-                                closestID = robot.ID;
-                            }
-                        }
-                    }
-                    // go to the closest landscaper
-                    if (closestID != 0) {
-                        droneMoveTowards(rc.senseRobot(closestID).location);
-                    }
-                    //if you couldn't find any landscapers go to the enemyHQ
-                    if (noLandscapers) {
-                        droneSwarmAround(enemyHQ);
-                    }
-                    // if no robots found swarm around enemy HQ
-                } else {
-                    droneSwarmAround(enemyHQ);
-                }
-                // if robot picked up the run the hell away
-            } else {
-                aboveUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
-                belowUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
-                if (rc.senseFlooding(aboveUnit) && rc.canDropUnit(dirTo(aboveUnit))) {
-                    rc.dropUnit(Direction.NORTH);
-                } else if (rc.senseFlooding(belowUnit) && rc.canDropUnit(dirTo(belowUnit))) {
-                    rc.dropUnit(Direction.SOUTH);
-                } else {
-                    droneMoveTowards(dirTo(enemyHQ).opposite());
-                }
-            }
-            // Huddle in the middle till the time comes
-        } else if (!isChosenOne) {
-            RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
-            System.out.println(robots.length);
-            if (robots.length > 0) {
-                for (RobotInfo robot : robots) {
-                    if (robot.getType() == RobotType.MINER || robot.getType() == RobotType.LANDSCAPER) {
-                        if (rc.canPickUpUnit(robot.getID())) {
-                            rc.pickUpUnit(robot.getID());
-                            break;
-                        } else {
-                            droneMoveTowards(rc.senseRobot(robot.getID()).location);
-                        }
-                    }
-                }
-            } else {
-                if(notChosenCurrentTarget==0) {
-                    droneSwarmAround(mapMid);
-                    if(rc.getLocation().isWithinDistanceSquared(mapMid,RobotType.NET_GUN.sensorRadiusSquared+5)){
-                        notChosenCurrentTarget=1;
-                    }
-                }if(notChosenCurrentTarget==1){
-                    droneSwarmAround(hqLoc);
-                }
-
-            }
-        }
-
-    }
-// Code here for peasant drones
-//            if (rc.getRoundNum() < 800) {
-
+//        chainScan();
+//        Team enemy = rc.getTeam().opponent();
+//        MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
+//            new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
+//            new MapLocation(hqLoc.x, rc.getMapHeight() - hqLoc.y)};
+//        if (isChosenOne && rc.getRoundNum() > 750) {
+//            droneMoveTowards(targets[currentTarget]);
+//            if (rc.getLocation().equals(targets[currentTarget])) {
+//                currentTarget += 1;
+//            }
+//            RobotInfo[] robots = rc.senseNearbyRobots();
+//            for (RobotInfo robot : robots) {
+//                if (robot.getType() == RobotType.HQ && robot.team == enemy) {
+//                    if (trySendChain("420", robot.location.x, robot.location.y)) {
+//                        isChosenOne = false;
+//                    }
+//
 //                }
-//            if (!loopBroke) {
-//                droneMoveTowards(mapMid);
+//            }
+//        } else if (isChosenOne) {
+//            droneMoveTowards(mapMid);
+//        }
+//        System.out.println(!isChosenOne && rc.getRoundNum() > 750 && enemyHQKnown);
+//        // wait till round 750 and until you know where enemy hq is
+//        if (!isChosenOne && rc.getRoundNum() > 750 && enemyHQKnown) {
+//            // run if you havent captured a landscaper yet
+//            if (!rc.isCurrentlyHoldingUnit()) {
+//                //scan for robots
+//                RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
+//                //if any robots were found and round is above 1000
+//                if (robots.length > 0 && rc.getRoundNum() > 1000) {
+//                    boolean noLandscapers = true;
+//                    int closestID = 0;
+//                    int closestDistance = 1000;
+//                    //run through all robots
+//                    for (RobotInfo robot : robots) {
+//                        //only run if the robot found is a landscaper
+//                        if (robot.getType() == RobotType.LANDSCAPER && robot.team == enemy) {
+//                            noLandscapers = false;
+//                            //if you can pick it up please do so
+//                            if (rc.canPickUpUnit(robot.getID())) {
+//                                rc.pickUpUnit(robot.getID());
+//                                break;
+//                            }
+//                            //find the closest landscaper
+//                            if (rc.getLocation().distanceSquaredTo(robot.location) < closestDistance) {
+//                                closestDistance = rc.getLocation().distanceSquaredTo(robot.location);
+//                                closestID = robot.ID;
+//                            }
+//                        }
+//                    }
+//                    // go to the closest landscaper
+//                    if (closestID != 0) {
+//                        droneMoveTowards(rc.senseRobot(closestID).location);
+//                    }
+//                    //if you couldn't find any landscapers go to the enemyHQ
+//                    if (noLandscapers) {
+//                        droneSwarmAround(enemyHQ);
+//                    }
+//                    // if no robots found swarm around enemy HQ
+//                } else {
+//                    droneSwarmAround(enemyHQ);
+//                }
+//                // if robot picked up the run the hell away
+//            } else {
+//                aboveUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
+//                belowUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
+//                if (rc.senseFlooding(aboveUnit) && rc.canDropUnit(dirTo(aboveUnit))) {
+//                    rc.dropUnit(Direction.NORTH);
+//                } else if (rc.senseFlooding(belowUnit) && rc.canDropUnit(dirTo(belowUnit))) {
+//                    rc.dropUnit(Direction.SOUTH);
+//                } else {
+//                    droneMoveTowards(dirTo(enemyHQ).opposite());
+//                }
+//            }
+//            // Huddle in the middle till the time comes
+//        } else if (!isChosenOne) {
+//            RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
+//            System.out.println(robots.length);
+//            if (robots.length > 0) {
+//                for (RobotInfo robot : robots) {
+//                    if (robot.getType() == RobotType.MINER || robot.getType() == RobotType.LANDSCAPER) {
+//                        if (rc.canPickUpUnit(robot.getID())) {
+//                            rc.pickUpUnit(robot.getID());
+//                            break;
+//                        } else {
+//                            droneMoveTowards(rc.senseRobot(robot.getID()).location);
+//                        }
+//                    }
+//                }
+//            } else {
+//                if(notChosenCurrentTarget==0) {
+//                    droneSwarmAround(mapMid);
+//                    if(rc.getLocation().isWithinDistanceSquared(mapMid,RobotType.NET_GUN.sensorRadiusSquared+5)){
+//                        notChosenCurrentTarget=1;
+//                    }
+//                }if(notChosenCurrentTarget==1){
+//                    droneSwarmAround(hqLoc);
+//                }
+//
 //            }
 //        }
-//    } else if (rc.getRoundNum() >= 800) {
-//        droneMoveTowards(enemyHQ);
-//    }
-//}
+
+    }
+
 
 
     static void runNetGun() throws GameActionException {
@@ -541,7 +579,6 @@ public strictfp class RobotPlayer {
     }
 
     static void bugNav(MapLocation loc) throws GameActionException{
-        System.out.println(loc);
         if(rc.isReady()) {
             if (!loc.equals(lastTarget)) {
                 closest = rc.getLocation().distanceSquaredTo(loc);
@@ -982,7 +1019,7 @@ public strictfp class RobotPlayer {
             0,
             0
         };
-        if (chainType.equals("69") || chainType.equals("96")) {
+        if (chainType.equals("69") || chainType.equals("96") || chainType.equals("11")) {
             message = chainType + id;
         }
 
@@ -1103,6 +1140,12 @@ public strictfp class RobotPlayer {
                 String id = Integer.toString(me[loop]).substring(2, 7);
                 if (Integer.parseInt(id) == rc.getID()) {
                     isChosenMiner = true;
+                }
+            }
+            if (Integer.toString(me[loop]).substring(0, 2).equals("11")) {
+                String id = Integer.toString(me[loop]).substring(2, 7);
+                if (Integer.parseInt(id) == rc.getID()) {
+                    turtleMiner = true;
                 }
             }
             loop++;
