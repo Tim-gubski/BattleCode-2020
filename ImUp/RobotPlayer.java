@@ -41,6 +41,7 @@ public strictfp class RobotPlayer {
     static int notChosenCurrentTarget = 0;
     static int vapeCount = 0;
     static int closest = 10000;
+    static int steps = 0;
     static MapLocation hqLoc;
     static MapLocation enemyHQ;
     static MapLocation refLoc;
@@ -51,8 +52,9 @@ public strictfp class RobotPlayer {
     static MapLocation belowUnit;
     static MapLocation lastTarget;
     static MapLocation[] explore;
+    static MapLocation[] targets;
     static int exploreIndex = 0;
-    static boolean exploring = false;
+    static boolean exploring = true;
     static boolean isSchool = false;
     static boolean isCenter = false;
     static boolean isRefinery = false;
@@ -60,6 +62,8 @@ public strictfp class RobotPlayer {
     static boolean layerFilled = false;
     static boolean isChosenOne = false;
     static boolean isChosenMiner = false;
+    static boolean rushSchool = false;
+    static boolean messageSent = false;
     static boolean takeStep = false;
 
     /**
@@ -109,7 +113,9 @@ public strictfp class RobotPlayer {
         }
 
         explore = new MapLocation[]{mapMid, new MapLocation(mapWidth/2,hqLoc.y), new MapLocation(hqLoc.x,mapHeight/2)};
-
+        targets = new MapLocation[]{new MapLocation(mapWidth - hqLoc.x, mapHeight - hqLoc.y),
+                new MapLocation(mapWidth - hqLoc.x, hqLoc.y),
+                new MapLocation(hqLoc.x, mapHeight - hqLoc.y)};
 
 
         while (true) {
@@ -165,81 +171,114 @@ public strictfp class RobotPlayer {
                 minerCount++;
             }
         }
-//        if (rc.getRoundNum() > 20 && rc.getTeamSoup() > 400 && minerCount < 6) {
-//            if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
-//                minerCount++;
-//            }
-//        }
-//        RobotInfo[] robots = rc.senseNearbyRobots();
-//        for (RobotInfo robot : robots) {
-//            if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
-//                rc.shootUnit(robot.getID());
-//            }
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
+                rc.shootUnit(robot.getID());
+            }
 //            if (!isChosenOne && robot.getType() == RobotType.DELIVERY_DRONE && rc.getTeam() == robot.team) {
 //                if (trySendChain("69", robot.getID())) {
 //                    isChosenOne = true;
 //                }
 //
 //            }
-//            if(rc.getRoundNum() > 20 && rc.getTeamSoup() > 400 && !isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team){
-//                if (trySendChain("96", robot.getID())) {
-//                    isChosenMiner = true;
-//                }
-//            }
-//        }
+            if(!isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team){
+                if (trySendChain("96", robot.getID())) {
+                    isChosenMiner = true;
+                }
+            }
+        }
 
     }
 
     static void runMiner() throws GameActionException {
         chainScan();
         //Try mining in all directions
-        for (Direction dir : directions) {
-            if (tryMine(dir)) {
-                lastSoup = rc.getLocation().add(dir);
+        if(isChosenMiner){
+            if (rc.getLocation().isWithinDistanceSquared(targets[currentTarget],rc.getCurrentSensorRadiusSquared()) && currentTarget<3) {
+                currentTarget += 1;
             }
-        }
-        //Try refining in all directions
-        for (Direction dir : directions) {
-            if (tryRefine(dir)) {
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for (RobotInfo robot : robots) {
+                if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
+                    enemyHQ=robot.location;
+                    enemyHQKnown=true;
+                    if(!messageSent && trySendChain("420", robot.location.x, robot.location.y)){
+                        messageSent = true;
+                    }
+                    if (robot.getType() == RobotType.DESIGN_SCHOOL && robot.team == rc.getTeam()) {
+                        rushSchool=true;
+                    }
+                }
             }
-        }
-        //If soup capacity is full, return to HQ to deposit soup
+            //NARA HELP!!
+            if(rc.canBuildRobot(RobotType.DESIGN_SCHOOL,Direction.NORTH)){
+                rc.buildRobot(RobotType.DESIGN_SCHOOL,Direction.NORTH);
+            }
+//            if((!rushSchool) && enemyHQKnown){
+//
+////                if(rc.getLocation().isAdjacentTo(enemyHQ)) {
+////                    tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.NORTH));
+////                }
+//            }
+            if(enemyHQ==null) {
+                bugNav(targets[currentTarget]);
+            }else{
+                bugNav(enemyHQ);
+            }
+        //regular code
+        }else {
 
-        MapLocation [] soups = rc.senseNearbySoup();
-        MapLocation closest = null;
-        if(soups.length>0) {
-             closest = soups[0];
-        }
-        for (MapLocation loc : soups){
-            if(rc.getLocation().distanceSquaredTo(loc)<rc.getLocation().distanceSquaredTo(closest)){
-                closest = loc;
+            for (Direction dir : directions) {
+                if (tryMine(dir)) {
+                    lastSoup = rc.getLocation().add(dir);
+                }
+            }
+            //Try refining in all directions
+            for (Direction dir : directions) {
+                if (tryRefine(dir)) {
+                }
+            }
+            //If soup capacity is full, return to HQ to deposit soup
 
+            MapLocation[] soups = rc.senseNearbySoup();
+            MapLocation closestLoc = null;
+            if (soups.length > 0) {
+                closestLoc = soups[0];
             }
-        }
-        if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
-            if (isRefinery) {
-                bugNav(refLoc);
-            } else {
-                bugNav(hqLoc);
+            for (MapLocation loc : soups) {
+                if (rc.getLocation().distanceSquaredTo(loc) < rc.getLocation().distanceSquaredTo(closestLoc)) {
+                    closestLoc = loc;
+
+                }
             }
-        }else if(closest!=null) {
-            bugNav(closest);
-            exploring = false;
-        }else if(lastSoup!=null){
-            bugNav(lastSoup);
-            if(rc.getLocation().isWithinDistanceSquared(lastSoup,9)){
-                lastSoup=null;
+            System.out.println(rc.getSoupCarrying());
+            if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
+                if (isRefinery) {
+                    bugNav(refLoc);
+                } else {
+                    bugNav(hqLoc);
+                }
+                exploring = false;
+            } else if (closestLoc != null) {
+                bugNav(closestLoc);
+                exploring = false;
+            } else if (lastSoup != null) {
+                bugNav(lastSoup);
+                if (rc.getLocation().isWithinDistanceSquared(lastSoup, 9)) {
+                    lastSoup = null;
+                }
+                exploring = false;
+            } else if (exploring) {
+                if (rc.getLocation().isWithinDistanceSquared(explore[exploreIndex], 4)) {
+                    exploring = false;
+                }
+                bugNav(explore[exploreIndex]);
+            } else if (!exploring) {
+                exploring = true;
+                exploreIndex = (int) (2.0 * Math.random());
+                bugNav(explore[exploreIndex]);
             }
-            exploring = false;
-        }else if(exploring){
-            if(rc.getLocation().isWithinDistanceSquared(explore[exploreIndex],4)){
-                exploring=false;
-            }
-            bugNav(explore[exploreIndex]);
-        }else if(!exploring){
-            exploring = true;
-            exploreIndex = (int)(2.0*Math.random());
-            bugNav(explore[exploreIndex]);
         }
     }
 
@@ -436,35 +475,51 @@ public strictfp class RobotPlayer {
     }
 
     static void bugNav(MapLocation loc) throws GameActionException{
-        if(loc != lastTarget){
-            closest = 100000;
-        }
-        Direction bestDir = Direction.NORTH;
-        boolean closer = false;
-        for (Direction dir : directions){
-            if (tilePassable(rc.getLocation().add(dir)) && rc.getLocation().add(dir).distanceSquaredTo(loc)<closest){
-                bestDir = dir;
-                closest = rc.getLocation().add(dir).distanceSquaredTo(loc);
-                closer = true;
+        if(rc.isReady()) {
+            if (!loc.equals(lastTarget)) {
+                closest = rc.getLocation().distanceSquaredTo(loc);
+                steps=0;
             }
-        }
-        if(closer){
-            tryMove(bestDir);
-        }else{
-            Direction tryDirection = dirTo(loc);
+            Direction bestDir = Direction.NORTH;
+            boolean closer = false;
             for (Direction dir : directions) {
-                if(tryMove(tryDirection)){
-                    break;
+                if (tilePassable(rc.getLocation().add(dir)) && rc.getLocation().add(dir).distanceSquaredTo(loc) < closest) {
+                    bestDir = dir;
+                    closest = rc.getLocation().add(dir).distanceSquaredTo(loc);
+                    closer = true;
                 }
-                tryDirection = tryDirection.rotateRight();
             }
+            if (closer) {
+                System.out.println("running");
+                tryMove(bestDir);
+            } else {
+                Direction tryDirection = null;
+                Direction tryDirection2 = dirTo(loc);
+                for(Direction dir : directions){
+                    if(!tilePassable(rc.getLocation().add(tryDirection2))){
+                        tryDirection = tryDirection2;
+                        break;
+                    }
+                    tryDirection2 = tryDirection2.rotateRight();
+                }
+                if(tryDirection==null){
+                    tryMove(dirTo(loc));
+                }else {
+                    for (Direction dir : directions) {
+                        if (tryMove(tryDirection)) {
+                            break;
+                        }
+                        tryDirection = tryDirection.rotateRight();
+                    }
+                }
+            }
+            steps++;
+            lastTarget = loc;
         }
-
-        lastTarget = loc;
     }
 
     static boolean tilePassable(MapLocation loc) throws GameActionException{
-        if(rc.canMove(dirTo(loc)) && rc.senseFlooding(loc)){
+        if(rc.canMove(dirTo(loc)) && !rc.senseFlooding(loc)){
             return true;
         }
         return false;
