@@ -334,7 +334,6 @@ public strictfp class RobotPlayer {
         }
 
         if(rushFactory){
-            System.out.println(landscaperCount);
             if(landscaperCount<4){
                 if(tryBuild(RobotType.LANDSCAPER,dirTo(enemyHQ))){
                     landscaperCount++;
@@ -366,32 +365,46 @@ public strictfp class RobotPlayer {
     }
 
     static void runLandscaper() throws GameActionException {
-        if (hqLoc == null) {
-            System.out.println("Im peeing");
-        }
-        if (!layerFilled && rc.canSenseLocation(hqLoc.add(dirTo(hqLoc)))) {
-            boolean empty = false;
-            for (Direction dir : directions) {
-                if ((trySenseRobotAtLocation(hqLoc.add(dir)) == null || trySenseRobotAtLocation(hqLoc.add(dir)).type != RobotType.LANDSCAPER) && rc.canSenseLocation(hqLoc.add(dir))) {
-                    empty = true;
-                }
+        boolean rushScaper = false;
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
+                enemyHQ=robot.location;
+                rushScaper=true;
+                break;
             }
-            if (!empty) {
-                layerFilled = true;
-            }
-
         }
 
-        if (!rc.getLocation().isAdjacentTo(hqLoc)) {
-            moveTowards(hqLoc);
-        }
-
-        if (rc.getLocation().isAdjacentTo(hqLoc) && (layerFilled || rc.getRoundNum() > 350)) {
-            if (tryDigDirt(dirTo(hqLoc).opposite())) {
-                tryDigDirt(dirTo(hqLoc).opposite());
+        if(rushScaper){
+            if(!rc.getLocation().isAdjacentTo(enemyHQ)){
+                moveTowards(enemyHQ);
             }
-            tryDropDirt(rc.getLocation());
+            tryDropDirt(enemyHQ);
+            tryDigDirt(Direction.CENTER);
         }
+//        if (!layerFilled && rc.canSenseLocation(hqLoc.add(dirTo(hqLoc)))) {
+//            boolean empty = false;
+//            for (Direction dir : directions) {
+//                if ((trySenseRobotAtLocation(hqLoc.add(dir)) == null || trySenseRobotAtLocation(hqLoc.add(dir)).type != RobotType.LANDSCAPER) && rc.canSenseLocation(hqLoc.add(dir))) {
+//                    empty = true;
+//                }
+//            }
+//            if (!empty) {
+//                layerFilled = true;
+//            }
+//
+//        }
+//
+//        if (!rc.getLocation().isAdjacentTo(hqLoc)) {
+//            moveTowards(hqLoc);
+//        }
+//
+//        if (rc.getLocation().isAdjacentTo(hqLoc) && (layerFilled || rc.getRoundNum() > 350)) {
+//            if (tryDigDirt(dirTo(hqLoc).opposite())) {
+//                tryDigDirt(dirTo(hqLoc).opposite());
+//            }
+//            tryDropDirt(rc.getLocation());
+//        }
     }
 
     static void runDeliveryDrone() throws GameActionException {
