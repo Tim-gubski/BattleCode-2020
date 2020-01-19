@@ -52,6 +52,7 @@ public strictfp class RobotPlayer {
     static MapLocation aboveUnit;
     static MapLocation belowUnit;
     static MapLocation lastTarget;
+    static MapLocation rushSchLoc;
     static MapLocation[] explore;
     static MapLocation[] targets;
     static int exploreIndex = 0;
@@ -217,35 +218,44 @@ public strictfp class RobotPlayer {
                         messageSent = true;
                     }
                 }
-//                if (robot.getType() == RobotType.DESIGN_SCHOOL && robot.team == rc.getTeam()) {
-//                    rushSchool=true;
-//                }
+                if (robot.getType() == RobotType.DESIGN_SCHOOL && robot.team == rc.getTeam()) {
+                    rushSchool=true;
+                    rushSchLoc=robot.location;
+                }
             }
 
             if((!rushSchool) && enemyHQKnown){
                 if(rc.getLocation().isAdjacentTo(enemyHQ)) {
                     if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.NORTH))){
                         rushSchool=true;
+                        rushSchLoc=enemyHQ.add(Direction.NORTH);
                     }
                     if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.WEST))){
                         rushSchool=true;
+                        rushSchLoc=enemyHQ.add(Direction.WEST);
                     }
                     if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.SOUTH))){
                         rushSchool=true;
+                        rushSchLoc=enemyHQ.add(Direction.SOUTH);
                     }
                     if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.EAST))){
                         rushSchool=true;
+                        rushSchLoc=enemyHQ.add(Direction.EAST);
                     }
                 }
             }
-            System.out.println(rushSchool);
+
             if(enemyHQ==null) {
                 bugNav(targets[currentTarget]);
             }else if(!rushSchool&&!rc.getLocation().isAdjacentTo(enemyHQ)){
                 bugNav(enemyHQ);
             }else if(!rushSchool&&rc.getLocation().isAdjacentTo(enemyHQ)){
                 swarmTo(enemyHQ);
+            }else if(rc.getLocation()!=enemyHQ.add(enemyHQ.directionTo(rushSchLoc).opposite())){
+                System.out.println("im running");
+                tryMove(dirTo(enemyHQ.add(enemyHQ.directionTo(rushSchLoc).opposite())));
             }
+
         //regular code
         }else {
 
@@ -314,13 +324,23 @@ public strictfp class RobotPlayer {
     }
 
     static void runDesignSchool() throws GameActionException {
-//        boolean rushFactory = false;
-//        RobotInfo[] robots = rc.senseNearbyRobots();
-//        for (RobotInfo robot : robots) {
-//            if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
-//                rushFactory=true;
-//            }
-//        }
+        boolean rushFactory = false;
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
+                enemyHQ=robot.location;
+                rushFactory=true;
+            }
+        }
+
+        if(rushFactory){
+            System.out.println(landscaperCount);
+            if(landscaperCount<4){
+                if(tryBuild(RobotType.LANDSCAPER,dirTo(enemyHQ))){
+                    landscaperCount++;
+                }
+            }
+        }
 
 
 
@@ -525,7 +545,6 @@ public strictfp class RobotPlayer {
                 }
             }
             if (closer) {
-                System.out.println("running");
                 tryMove(bestDir);
             } else {
                 Direction tryDirection = lastDirection.rotateLeft().rotateLeft();
