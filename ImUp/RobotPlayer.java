@@ -3,6 +3,7 @@ package ImUp;
 import battlecode.common.*;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -44,7 +45,7 @@ public strictfp class RobotPlayer {
     static int steps = 0;
     static MapLocation hqLoc;
     static MapLocation enemyHQ;
-    static MapLocation refLoc;
+    static ArrayList<MapLocation> refLoc = new ArrayList<>();
     static MapLocation schLoc;
     static MapLocation lastSoup;
     static MapLocation mapMid;
@@ -57,7 +58,6 @@ public strictfp class RobotPlayer {
     static boolean exploring = true;
     static boolean isSchool = false;
     static boolean isCenter = false;
-    static boolean isRefinery = false;
     static boolean enemyHQKnown = false;
     static boolean layerFilled = false;
     static boolean isChosenOne = false;
@@ -65,6 +65,7 @@ public strictfp class RobotPlayer {
     static boolean rushSchool = false;
     static boolean messageSent = false;
     static boolean takeStep = false;
+    static Direction lastDirection;
 
     /**
      * run() is the method that is called when a robot is instantiated in the
@@ -95,6 +96,9 @@ public strictfp class RobotPlayer {
         if (hqLoc == null) {
             hqChainScan();
         }
+        if(hqLoc == null){
+            hqLoc = new MapLocation(10,10);
+        }
 
         if (rc.getType() == RobotType.DESIGN_SCHOOL) {
             trySendChain("774", rc.getLocation().x, rc.getLocation().y);
@@ -112,7 +116,12 @@ public strictfp class RobotPlayer {
             trySendChain("877", rc.getLocation().x, rc.getLocation().y);
         }
 
-        explore = new MapLocation[]{mapMid, new MapLocation(mapWidth/2,hqLoc.y), new MapLocation(hqLoc.x,mapHeight/2)};
+        explore = new MapLocation[]{mapMid, new MapLocation(mapWidth/2,hqLoc.y),
+                new MapLocation(hqLoc.x,mapHeight/2),
+                new MapLocation(hqLoc.x,mapHeight),
+                new MapLocation(hqLoc.x,0),
+                new MapLocation(mapWidth,hqLoc.y),
+                new MapLocation(0,hqLoc.y)};
         targets = new MapLocation[]{new MapLocation(mapWidth - hqLoc.x, mapHeight - hqLoc.y),
                 new MapLocation(mapWidth - hqLoc.x, hqLoc.y),
                 new MapLocation(hqLoc.x, mapHeight - hqLoc.y)};
@@ -193,9 +202,10 @@ public strictfp class RobotPlayer {
 
     static void runMiner() throws GameActionException {
         chainScan();
+        scanRefinery();
         //Try mining in all directions
         if(isChosenMiner){
-            if (rc.getLocation().isWithinDistanceSquared(targets[currentTarget],rc.getCurrentSensorRadiusSquared()) && currentTarget<3) {
+            if (rc.getLocation().isWithinDistanceSquared(targets[currentTarget],rc.getCurrentSensorRadiusSquared()-10) && currentTarget<2) {
                 currentTarget += 1;
             }
             RobotInfo[] robots = rc.senseNearbyRobots();
@@ -206,25 +216,35 @@ public strictfp class RobotPlayer {
                     if(!messageSent && trySendChain("420", robot.location.x, robot.location.y)){
                         messageSent = true;
                     }
-                    if (robot.getType() == RobotType.DESIGN_SCHOOL && robot.team == rc.getTeam()) {
+                }
+//                if (robot.getType() == RobotType.DESIGN_SCHOOL && robot.team == rc.getTeam()) {
+//                    rushSchool=true;
+//                }
+            }
+
+            if((!rushSchool) && enemyHQKnown){
+                if(rc.getLocation().isAdjacentTo(enemyHQ)) {
+                    if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.NORTH))){
+                        rushSchool=true;
+                    }
+                    if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.WEST))){
+                        rushSchool=true;
+                    }
+                    if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.SOUTH))){
+                        rushSchool=true;
+                    }
+                    if(tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.EAST))){
                         rushSchool=true;
                     }
                 }
             }
-            //NARA HELP!!
-            if(rc.canBuildRobot(RobotType.DESIGN_SCHOOL,Direction.NORTH)){
-                rc.buildRobot(RobotType.DESIGN_SCHOOL,Direction.NORTH);
-            }
-//            if((!rushSchool) && enemyHQKnown){
-//
-////                if(rc.getLocation().isAdjacentTo(enemyHQ)) {
-////                    tryBuild(RobotType.DESIGN_SCHOOL, enemyHQ.add(Direction.NORTH));
-////                }
-//            }
+            System.out.println(rushSchool);
             if(enemyHQ==null) {
                 bugNav(targets[currentTarget]);
-            }else{
+            }else if(!rushSchool&&!rc.getLocation().isAdjacentTo(enemyHQ)){
                 bugNav(enemyHQ);
+            }else if(!rushSchool&&rc.getLocation().isAdjacentTo(enemyHQ)){
+                swarmTo(enemyHQ);
             }
         //regular code
         }else {
@@ -246,16 +266,19 @@ public strictfp class RobotPlayer {
             if (soups.length > 0) {
                 closestLoc = soups[0];
             }
+
             for (MapLocation loc : soups) {
                 if (rc.getLocation().distanceSquaredTo(loc) < rc.getLocation().distanceSquaredTo(closestLoc)) {
                     closestLoc = loc;
 
                 }
             }
-            System.out.println(rc.getSoupCarrying());
+            if(soups.length>5 && rc.getLocation().distanceSquaredTo(hqLoc)>100 && (closestRefinery() == null || (closestRefinery()!=null && rc.getLocation().distanceSquaredTo(closestRefinery())>100))){
+                tryBuild(RobotType.REFINERY,dirTo(closestLoc).opposite());
+            }
             if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
-                if (isRefinery) {
-                    bugNav(refLoc);
+                if (refLoc.size()>0) {
+                    bugNav(closestRefinery());
                 } else {
                     bugNav(hqLoc);
                 }
@@ -276,7 +299,7 @@ public strictfp class RobotPlayer {
                 bugNav(explore[exploreIndex]);
             } else if (!exploring) {
                 exploring = true;
-                exploreIndex = (int) (2.0 * Math.random());
+                exploreIndex = (int) ((explore.length-1) * Math.random());
                 bugNav(explore[exploreIndex]);
             }
         }
@@ -291,14 +314,24 @@ public strictfp class RobotPlayer {
     }
 
     static void runDesignSchool() throws GameActionException {
-//        Build a landscaper in the closest possible direction to the HQ
-        int landscaperLimit = 9; // This is a temporary landscaper limit.
+//        boolean rushFactory = false;
+//        RobotInfo[] robots = rc.senseNearbyRobots();
+//        for (RobotInfo robot : robots) {
+//            if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
+//                rushFactory=true;
+//            }
+//        }
 
-        if (landscaperCount < landscaperLimit) {
-            if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
-                landscaperCount++;
-            }
-        }
+
+
+////        Build a landscaper in the closest possible direction to the HQ
+//        int landscaperLimit = 9; // This is a temporary landscaper limit.
+//
+//        if (landscaperCount < landscaperLimit) {
+//            if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
+//                landscaperCount++;
+//            }
+//        }
     }
 
     static void runFulfillmentCenter() throws GameActionException {
@@ -475,10 +508,12 @@ public strictfp class RobotPlayer {
     }
 
     static void bugNav(MapLocation loc) throws GameActionException{
+        System.out.println(loc);
         if(rc.isReady()) {
             if (!loc.equals(lastTarget)) {
                 closest = rc.getLocation().distanceSquaredTo(loc);
                 steps=0;
+                lastDirection = dirTo(loc).rotateRight();
             }
             Direction bestDir = Direction.NORTH;
             boolean closer = false;
@@ -493,29 +528,68 @@ public strictfp class RobotPlayer {
                 System.out.println("running");
                 tryMove(bestDir);
             } else {
-                Direction tryDirection = null;
-                Direction tryDirection2 = dirTo(loc);
-                for(Direction dir : directions){
-                    if(!tilePassable(rc.getLocation().add(tryDirection2))){
-                        tryDirection = tryDirection2;
+                Direction tryDirection = lastDirection.rotateLeft().rotateLeft();
+//                Direction tryDirection2 = dirTo(loc);
+//                for(Direction dir : directions){
+//                    if(!tilePassable(rc.getLocation().add(tryDirection2))){
+//                        tryDirection = tryDirection2;
+//                        break;
+//                    }
+//                    tryDirection2 = tryDirection2.rotateRight();
+//                }
+//                if(tryDirection==null){
+//                    tryMove(dirTo(loc));
+//                }else {
+                boolean moved = false;
+                for (Direction dir : directions) {
+                    if (tryMove(tryDirection)) {
+                        lastDirection = tryDirection;
+                        moved = true;
                         break;
                     }
-                    tryDirection2 = tryDirection2.rotateRight();
+                    tryDirection = tryDirection.rotateRight();
                 }
-                if(tryDirection==null){
+                if(!moved){
                     tryMove(dirTo(loc));
-                }else {
-                    for (Direction dir : directions) {
-                        if (tryMove(tryDirection)) {
-                            break;
-                        }
-                        tryDirection = tryDirection.rotateRight();
-                    }
                 }
             }
+//            }
             steps++;
             lastTarget = loc;
         }
+    }
+
+    static void scanRefinery() throws GameActionException{
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.REFINERY && robot.team == rc.getTeam()) {
+                boolean alreadyAdded = false;
+                for(MapLocation loc : refLoc){
+                    if (robot.location == loc){
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if(!alreadyAdded){
+                    refLoc.add(robot.location);
+                }
+            }
+        }
+    }
+
+    static MapLocation closestRefinery() throws GameActionException {
+        int closest = 100000;
+        MapLocation closestRef = null;
+        for(MapLocation loc : refLoc){
+            if(rc.getLocation().distanceSquaredTo(loc)<closest){
+                closestRef = loc;
+                closest = rc.getLocation().distanceSquaredTo(loc);
+            }
+        }
+        if(closestRef !=null){
+            return closestRef;
+        }
+        return null;
     }
 
     static boolean tilePassable(MapLocation loc) throws GameActionException{
@@ -607,6 +681,21 @@ public strictfp class RobotPlayer {
             return true;
         } else {
             return false;
+        }
+    }
+
+    static void swarmTo(MapLocation loc) throws GameActionException{
+        Direction dir = dirTo(loc);
+        if (rc.getLocation().add(dir).isAdjacentTo(loc) && tilePassable(rc.getLocation().add(dir))) {
+            tryMove(dir);
+        } else if (rc.getLocation().add(dir.rotateRight()).isAdjacentTo(loc) && tilePassable(rc.getLocation().add(dir.rotateRight()))) {
+            tryMove(dir.rotateRight());
+        } else if (rc.getLocation().add(dir.rotateLeft()).isAdjacentTo(loc) && tilePassable(rc.getLocation().add(dir.rotateLeft()))) {
+            tryMove(dir.rotateLeft());
+        } else if (rc.getLocation().add(dir.rotateRight().rotateRight()).isAdjacentTo(loc) && tilePassable(rc.getLocation().add(dir.rotateRight().rotateRight()))) {
+            tryMove(dir.rotateRight().rotateRight());
+        } else if (rc.getLocation().add(dir.rotateLeft().rotateLeft()).isAdjacentTo(loc) && tilePassable(rc.getLocation().add(dir.rotateLeft().rotateLeft()))) {
+            tryMove(dir.rotateLeft().rotateLeft());
         }
     }
 
@@ -959,8 +1048,7 @@ public strictfp class RobotPlayer {
             if (Integer.toString(me[loop]).substring(0, 3).equals("273")) {
                 String x = Integer.toString(me[loop]).substring(3, 5);
                 String y = Integer.toString(me[loop]).substring(5, 7);
-                isRefinery = true;
-                refLoc = new MapLocation(Integer.parseInt(x), Integer.parseInt(y));
+                refLoc.add(new MapLocation(Integer.parseInt(x), Integer.parseInt(y)));
             }
             if (Integer.toString(me[loop]).substring(0, 3).equals("420")) {
                 String x = Integer.toString(me[loop]).substring(3, 5);
