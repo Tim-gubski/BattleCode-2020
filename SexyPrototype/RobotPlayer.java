@@ -72,6 +72,7 @@ public strictfp class RobotPlayer {
     static boolean rushSchool = false;
     static boolean rushGun = false;
     static boolean rushFactory = false;
+    static boolean rushScaper = false;
     static boolean messageSent = false;
     static boolean takeStep = false;
     static boolean initialPlacement = true;
@@ -124,6 +125,16 @@ public strictfp class RobotPlayer {
         }
         if (rc.getType() == RobotType.VAPORATOR) {
             trySendChain("877", rc.getLocation().x, rc.getLocation().y);
+        }
+        if(rc.getType() == RobotType.LANDSCAPER){
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for (RobotInfo robot : robots) {
+                if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
+                    enemyHQ = robot.location;
+                    rushScaper = true;
+                    break;
+                }
+            }
         }
 
         explore = new MapLocation[]{mapMid, new MapLocation(mapWidth / 2, hqLoc.y),
@@ -444,16 +455,6 @@ public strictfp class RobotPlayer {
     }
 
     static void runLandscaper() throws GameActionException {
-        boolean rushScaper = false;
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        for (RobotInfo robot : robots) {
-            if (robot.getType() == RobotType.HQ && robot.team != rc.getTeam()) {
-                enemyHQ = robot.location;
-                rushScaper = true;
-                break;
-            }
-        }
-
         if (rushScaper) {
             if (!rc.getLocation().isAdjacentTo(enemyHQ)) {
                 moveTowards(enemyHQ);
