@@ -41,6 +41,7 @@ public strictfp class RobotPlayer {
     static int currentTarget = 0;
     static int notChosenCurrentTarget = 0;
     static int vapeCount = 0;
+    static int schoolCount = 0;
     static int closest = 10000;
     static int steps = 0;
     static int turtleRound = 120;
@@ -70,6 +71,7 @@ public strictfp class RobotPlayer {
     static boolean turtleMiner = false;
     static boolean rushScaper = false;
     static boolean rushFactory = false;
+    static boolean endGame = false;
     static Direction lastDirection;
 
     /**
@@ -224,6 +226,7 @@ public strictfp class RobotPlayer {
         }
         //HQ Fanciness
         RobotInfo[] robots = rc.senseNearbyRobots();
+        int landscaperCount = 0;
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
                 rc.shootUnit(robot.getID());
@@ -245,11 +248,20 @@ public strictfp class RobotPlayer {
                     turtleMiner=true;
                 }
             }
+            if(robot.type == RobotType.LANDSCAPER && rc.getTeam() == robot.team){
+                landscaperCount++;
+            }
+        }
+        if(!endGame && landscaperCount>4){
+            if(trySendChain("116",rc.getLocation().x,rc.getLocation().y)){
+                endGame = true;
+            }
         }
 
     }
 
     static void runMiner() throws GameActionException {
+        System.out.println(endGame);
         chainScan();
         scanRefinery();
         maybeDie();
@@ -350,10 +362,19 @@ public strictfp class RobotPlayer {
                 if(tryBuild(RobotType.VAPORATOR,hqLoc.add(Direction.SOUTHWEST))){
                     vapeCount++;
                 }
+            }else{
+                if(tryBuild(RobotType.NET_GUN,dirTo(hqLoc))){
+                    rc.disintegrate();
+                }
             }
             swarmTo(hqLoc);
-        //peasant code
-        } else {
+        //end Game
+        } else if(endGame) {
+
+
+
+        //peasants
+        }else {
 
             for (Direction dir : directions) {
                 if (tryMine(dir)) {
@@ -538,7 +559,10 @@ public strictfp class RobotPlayer {
             }else {
                 tryDigDirt(dirTo(hqLoc).opposite());
             }
-        }else{
+        }else if(rc.getLocation().isAdjacentTo(hqLoc)){
+            if(rc.senseRobotAtLocation(hqLoc).getDirtCarrying()>0){
+                tryDigDirt(hqLoc);
+            }
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.getType() == RobotType.DESIGN_SCHOOL && robot.team != rc.getTeam() && robot.location.isAdjacentTo(rc.getLocation())) {
@@ -1322,6 +1346,10 @@ public strictfp class RobotPlayer {
         if (chainType.equals("939")) {
             message = chainType + String.format("%02d", x) + String.format("%02d", y);
         }
+        //We're in the endgame now
+        if (chainType.equals("116")) {
+            message = chainType + String.format("%02d", x) + String.format("%02d", y);
+        }
         if (message == null) {
             return false;
         }
@@ -1352,6 +1380,7 @@ public strictfp class RobotPlayer {
             if (Integer.toString(me[loop]).length() == 7 && Integer.toString(me[loop+1]).length() == 7) {
                 if (Integer.toString(me[loop]).substring(0, 3).equals("774")) {
                     isSchool = true;
+                    schoolCount++;
                 }
                 if (Integer.toString(me[loop]).substring(0, 3).equals("666")) {
                     isCenter = true;
@@ -1371,6 +1400,11 @@ public strictfp class RobotPlayer {
                     String x = Integer.toString(me[loop]).substring(3, 5);
                     String y = Integer.toString(me[loop]).substring(5, 7);
                     vapeCount += 1;
+                }
+                if (Integer.toString(me[loop]).substring(0, 3).equals("116")) {
+                    String x = Integer.toString(me[loop]).substring(3, 5);
+                    String y = Integer.toString(me[loop]).substring(5, 7);
+                    endGame = true;
                 }
                 if (Integer.toString(me[loop]).substring(0, 2).equals("69")) {
                     String id = Integer.toString(me[loop]).substring(2, 7);
