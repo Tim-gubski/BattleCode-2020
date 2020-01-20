@@ -415,7 +415,7 @@ public strictfp class RobotPlayer {
         }
 
         if (!rushFactory) {
-            if (landscaperCount < 10) {
+            if (landscaperCount < 10 && rc.getTeamSoup() > 170) {
                 if (tryBuild(RobotType.LANDSCAPER, dirTo(hqLoc))) {
                     landscaperCount++;
                 }
@@ -1218,6 +1218,9 @@ public strictfp class RobotPlayer {
         int loop = 0;
         for (Transaction tran : trans) {
             int[] me = tran.getMessage();
+            if (Integer.toString(me[loop]).length() < 7) {
+                break;
+            }
             if (Integer.toString(me[loop]).substring(0, 3).equals("774")) {
                 isSchool = true;
             }
