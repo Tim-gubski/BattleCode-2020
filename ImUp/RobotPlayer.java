@@ -180,13 +180,25 @@ public strictfp class RobotPlayer {
     static void runHQ() throws GameActionException {
         //build miners
         if (minerCount < 5) {
-            if (tryBuild(RobotType.MINER, Direction.NORTHEAST)) {
-                minerCount++;
+            if(rc.senseNearbySoup().length>0) {
+                if (tryBuild(RobotType.MINER, dirTo(rc.senseNearbySoup()[0]))) {
+                    minerCount++;
+                }
+            }else{
+                if (tryBuild(RobotType.MINER, randomDirection())) {
+                    minerCount++;
+                }
             }
         }
         if(rc.getRoundNum()>turtleRound && minerCount<6 && rc.getTeamSoup()>80){
-            if(tryBuild(RobotType.MINER, Direction.NORTHEAST)){
-                minerCount++;
+            if(rc.senseNearbySoup().length>0) {
+                if (tryBuild(RobotType.MINER, dirTo(rc.senseNearbySoup()[0]))) {
+                    minerCount++;
+                }
+            }else{
+                if (tryBuild(RobotType.MINER, randomDirection())) {
+                    minerCount++;
+                }
             }
         }
         //HQ Fanciness
@@ -270,7 +282,7 @@ public strictfp class RobotPlayer {
                 tryMove(dirTo(enemyHQ.add(enemyHQ.directionTo(rushSchLoc).opposite())));
             }
 
-        //regular code
+        //Turtle code
         } else if(turtleMiner){
             if(!isSchool){
                 if(tryBuild(RobotType.DESIGN_SCHOOL,hqLoc.add(Direction.NORTHEAST))){
@@ -295,6 +307,7 @@ public strictfp class RobotPlayer {
                 }
             }
             swarmTo(hqLoc);
+        //peasant code
         } else {
 
             for (Direction dir : directions) {
@@ -322,6 +335,9 @@ public strictfp class RobotPlayer {
                 }
             }
             if(soups.length>5 && rc.getLocation().distanceSquaredTo(hqLoc)>100 && (closestRefinery() == null || (closestRefinery()!=null && rc.getLocation().distanceSquaredTo(closestRefinery())>100))){
+                tryBuild(RobotType.REFINERY,dirTo(closestLoc).opposite());
+            }
+            if(rc.getRoundNum()>turtleRound && closestRefinery()==null && rc.getLocation().distanceSquaredTo(hqLoc)>25){
                 tryBuild(RobotType.REFINERY,dirTo(closestLoc).opposite());
             }
             if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
@@ -362,6 +378,8 @@ public strictfp class RobotPlayer {
     }
 
     static void runDesignSchool() throws GameActionException {
+        scanRefinery();
+        chainScan();
         boolean rushFactory = false;
         RobotInfo[] robots = rc.senseNearbyRobots();
         for (RobotInfo robot : robots) {
@@ -378,7 +396,7 @@ public strictfp class RobotPlayer {
                 }
             }
         }else{
-            if(landscaperCount<14){
+            if(landscaperCount<1 && closestRefinery() != null){
                 if(tryBuild(RobotType.LANDSCAPER,dirTo(hqLoc).opposite())){
                     landscaperCount++;
                 }
@@ -419,13 +437,18 @@ public strictfp class RobotPlayer {
             }
         }
 
+        boolean onWall = false;
+        if((Math.abs(rc.getLocation().x-hqLoc.x)==2 && Math.abs(rc.getLocation().y-hqLoc.y)<=2) || (Math.abs(rc.getLocation().y-hqLoc.y)==2 && Math.abs(rc.getLocation().x-hqLoc.x)<=2)){
+            onWall = true;
+        }
+
         if(rushScaper){
             if(!rc.getLocation().isAdjacentTo(enemyHQ)){
                 moveTowards(enemyHQ);
             }
 //            tryDropDirt(enemyHQ);
 //            tryDigDirt(Direction.CENTER);
-        }else{
+        }else if(onWall){
 
         }
 
