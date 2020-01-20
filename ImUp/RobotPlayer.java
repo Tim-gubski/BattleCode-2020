@@ -55,6 +55,7 @@ public strictfp class RobotPlayer {
     static MapLocation belowUnit;
     static MapLocation lastTarget;
     static MapLocation rushSchLoc;
+    static MapLocation firstNetGun;
     static MapLocation[] explore;
     static MapLocation[] targets;
     static int exploreIndex = 0;
@@ -362,17 +363,22 @@ public strictfp class RobotPlayer {
                 if(tryBuild(RobotType.VAPORATOR,hqLoc.add(Direction.SOUTHWEST))){
                     vapeCount++;
                 }
+            }else if(firstNetGun==null){
+                if(tryBuild(RobotType.NET_GUN,hqLoc.add(hqLoc.directionTo(schLoc).opposite().rotateRight()))){
+                    firstNetGun=hqLoc.add(hqLoc.directionTo(schLoc).opposite().rotateRight());
+                }
+                if(tryBuild(RobotType.NET_GUN,hqLoc.add(hqLoc.directionTo(schLoc).opposite().rotateLeft()))){
+                    firstNetGun=hqLoc.add(hqLoc.directionTo(schLoc).opposite().rotateLeft());
+                }
             }else{
-                if(tryBuild(RobotType.NET_GUN,dirTo(hqLoc))){
+                if(tryBuild(RobotType.NET_GUN,hqLoc.add(hqLoc.directionTo(firstNetGun).rotateRight().rotateRight()))){
+                    rc.disintegrate();
+                }
+                if(tryBuild(RobotType.NET_GUN,hqLoc.add(hqLoc.directionTo(firstNetGun).rotateLeft().rotateLeft()))){
                     rc.disintegrate();
                 }
             }
             swarmTo(hqLoc);
-        //end Game
-        } else if(endGame) {
-
-
-
         //peasants
         }else {
 
@@ -507,8 +513,8 @@ public strictfp class RobotPlayer {
             if(!rc.getLocation().isAdjacentTo(enemyHQ)){
                 moveTowards(enemyHQ);
             }
-//            tryDropDirt(enemyHQ);
-//            tryDigDirt(Direction.CENTER);
+            tryDropDirt(enemyHQ);
+            tryDigDirt(Direction.CENTER);
         }else if(onWall(rc.getLocation())){
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
@@ -731,7 +737,12 @@ public strictfp class RobotPlayer {
 
 
     static void runNetGun() throws GameActionException {
-
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
+                rc.shootUnit(robot.ID);
+            }
+        }
     }
 
     static Direction lesGoThisWay() throws GameActionException{
@@ -809,7 +820,7 @@ public strictfp class RobotPlayer {
     }
 
     static void maybeDie() throws GameActionException{
-        if(rc.getRoundNum()>350 && (rc.getLocation().isAdjacentTo(hqLoc) || onWall(rc.getLocation())) && !turtleMiner){
+        if(rc.getRoundNum()>250 && (rc.getLocation().isAdjacentTo(hqLoc) || onWall(rc.getLocation())) && !turtleMiner){
             rc.disintegrate();
         }
     }
