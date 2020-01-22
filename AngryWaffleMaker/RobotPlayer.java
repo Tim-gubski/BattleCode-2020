@@ -721,7 +721,6 @@ public strictfp class RobotPlayer {
                 droneSwarmAround(enemyHQ);
             } else if (rc.getRoundNum() >= 1300) {
                 RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), rc.getTeam().opponent());
-                //if any robots were found and round is above 1000
                 if (robots.length > 0 && !isAlreadyHoldingUnit) {
                     boolean noLandscapers = true;
                     int closestID = 0;
