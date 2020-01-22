@@ -1,4 +1,4 @@
-package ImUp;
+package WaffleMaker;
 
 import battlecode.common.*;
 
@@ -379,8 +379,11 @@ public strictfp class RobotPlayer {
                 }
             }
             swarmTo(hqLoc);
-        //peasants
-        }else {
+
+        } else if (endGame){
+            
+
+        } else{
 
             for (Direction dir : directions) {
                 if (tryMine(dir)) {
