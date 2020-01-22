@@ -1294,7 +1294,7 @@ public strictfp class RobotPlayer {
                 if (tryDigDirt(loc)) {
                     break;
                 }
-            } else if (rc.getDirtCarrying() > 0 && (loc.x % 2 != 0 || loc.y % 2 != 0)) {
+            } else if (rc.getDirtCarrying() > 0 && (loc.x % 2 != 0 || loc.y % 2 != 0) && rc.senseElevation(loc) < 9) {
                 if (tryDropDirt(loc)) {
                     break;
                 }
