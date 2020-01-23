@@ -910,7 +910,7 @@ public strictfp class RobotPlayer {
                 landscaperCount++;
             }
         }
-        if (landscaperCount >= 16) {
+        if (landscaperCount >= 16 || (rc.getTeamSoup()>250 && landscaperCount>=7)) {
             return true;
         } else {
             return false;
