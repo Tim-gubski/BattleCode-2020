@@ -77,7 +77,6 @@ public strictfp class RobotPlayer {
     static boolean rushFactory = false;
     static boolean endGame = false;
     static boolean goRight = true;
-    static boolean hasYoinked = false;
     static Direction lastDirection;
 
     /**
