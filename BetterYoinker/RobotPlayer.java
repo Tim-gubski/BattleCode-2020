@@ -44,7 +44,7 @@ public strictfp class RobotPlayer {
     static int schoolCount = 0;
     static int closest = 10000;
     static int steps = 0;
-    static int turtleRound = 120;
+    static int turtleRound = 90;
     static MapLocation hqLoc;
     static MapLocation enemyHQ;
     static ArrayList<MapLocation> refLoc = new ArrayList<>();
@@ -53,6 +53,8 @@ public strictfp class RobotPlayer {
     static MapLocation mapMid;
     static MapLocation aboveUnit;
     static MapLocation belowUnit;
+    static MapLocation leftOfUnit;
+    static MapLocation rightOfUnit;
     static MapLocation lastTarget;
     static MapLocation rushSchLoc;
     static MapLocation firstNetGun;
@@ -75,6 +77,7 @@ public strictfp class RobotPlayer {
     static boolean rushFactory = false;
     static boolean endGame = false;
     static boolean goRight = true;
+    static boolean hasYoinked = false;
     static Direction lastDirection;
 
     /**
@@ -354,10 +357,10 @@ public strictfp class RobotPlayer {
                 if (tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.NORTHEAST))) {
                     vapeCount++;
                 }
-                if (tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.NORTHWEST))) {
+                if (tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.SOUTHEAST))) {
                     vapeCount++;
                 }
-                if (tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.SOUTHEAST))) {
+                if (tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.NORTHWEST))) {
                     vapeCount++;
                 }
                 if (tryBuild(RobotType.VAPORATOR, hqLoc.add(Direction.SOUTHWEST))) {
@@ -620,7 +623,7 @@ public strictfp class RobotPlayer {
 
     static void runDeliveryDrone() throws GameActionException {
         chainScan();
-        if (rc.getRoundNum() < 1300) {
+        if (rc.getRoundNum() < 1100) {
             isYoinker = true;
         }
         if (isChosenOne) {
@@ -667,7 +670,7 @@ public strictfp class RobotPlayer {
                     droneMoveTowards(dirTo(hqLoc).opposite());
                 }
                 //YOINKING TIME
-            } else if (rc.getRoundNum() > 1000 && isYoinker) {
+            } else if (rc.getRoundNum() > 900 && isYoinker) {
                 Team enemy = rc.getTeam().opponent();
                 MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
                     new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
@@ -686,13 +689,13 @@ public strictfp class RobotPlayer {
 
                         }
                     }
-                } else if (rc.getRoundNum() > 1400 && enemyHQ != null && isYoinker) {
+                } else if (rc.getRoundNum() > 1200 && enemyHQ != null && isYoinker) {
                     //YOINKING
                     if (!rc.isCurrentlyHoldingUnit()) {
                         //scan for robots
                         RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), enemy);
-                        //if any robots were found and round is above 1000
-                        if (robots.length > 0 && rc.getRoundNum() > 1000) {
+                        //if any robots were found and round is above 900
+                        if (robots.length > 0 && rc.getRoundNum() > 900) {
                             boolean noLandscapers = true;
                             int closestID = 0;
                             int closestDistance = 1000;
@@ -735,9 +738,15 @@ public strictfp class RobotPlayer {
                     } else {
                         aboveUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
                         belowUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
+                        leftOfUnit = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y);
+                        rightOfUnit = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y);
                         if (rc.senseFlooding(aboveUnit) && rc.canDropUnit(dirTo(aboveUnit))) {
                             rc.dropUnit(Direction.NORTH);
                         } else if (rc.senseFlooding(belowUnit) && rc.canDropUnit(dirTo(belowUnit))) {
+                            rc.dropUnit(Direction.SOUTH);
+                        } else if (rc.senseFlooding(leftOfUnit) && rc.canDropUnit(dirTo(leftOfUnit))) {
+                            rc.dropUnit(Direction.NORTH);
+                        } else if (rc.senseFlooding(rightOfUnit) && rc.canDropUnit(dirTo(rightOfUnit))) {
                             rc.dropUnit(Direction.SOUTH);
                         } else {
                             droneMoveTowards(dirTo(enemyHQ).opposite());
@@ -753,26 +762,53 @@ public strictfp class RobotPlayer {
                     }
                 }
 
-            } else if (rc.getRoundNum() < 1000 && isYoinker) {
-                if (radiusTo(hqLoc) == 18 || radiusTo(hqLoc) == 13 || radiusTo(hqLoc) == 10 || radiusTo(hqLoc) == 9) {
-                    praiseGod();
-                } else {
-                    droneMoveTowards(hqLoc);
-                }
-            } else if (!isYoinker) {
+            } else if (rc.getRoundNum() < 900 && isYoinker) {
+                boolean wasBroken = false;
                 RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), rc.getTeam().opponent());
-                for (RobotInfo robot :robots) {
+                for (RobotInfo robot : robots) {
                     if (robot.getType() == RobotType.LANDSCAPER && rc.canPickUpUnit(robot.getID())) {
                         rc.pickUpUnit(robot.getID());
                         break;
                     }
                 }
-                if (radiusTo(hqLoc) == 18 || radiusTo(hqLoc) == 13 || radiusTo(hqLoc) == 10 || radiusTo(hqLoc) == 9) {
-                    praiseGod();
-                } else if (onWall(rc.getLocation())) {
+                if (onWall(rc.getLocation())) {
                     droneMoveTowards(dirTo(hqLoc).opposite());
+                } else if (radiusTo(hqLoc) == 18 || radiusTo(hqLoc) == 13 || radiusTo(hqLoc) == 10 || radiusTo(hqLoc) == 9) {
+                    RobotInfo[] wallChecker = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), rc.getTeam());
+                    for (RobotInfo robot : wallChecker) {
+                        if (robot.getType() == RobotType.DELIVERY_DRONE && onWall(robot.getLocation()) && rc.getLocation().isAdjacentTo(robot.getLocation())) {
+                            droneMoveTowards(dirTo(hqLoc).opposite());
+                            wasBroken = true;
+                            break;
+                        }
+                    }
                 } else {
-                    droneMoveTowards(hqLoc);
+                    praiseGod();
+
+                }
+            } else if (!isYoinker) {
+                boolean wasBroken = false;
+                RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), rc.getTeam().opponent());
+                for (RobotInfo robot : robots) {
+                    if (robot.getType() == RobotType.LANDSCAPER && rc.canPickUpUnit(robot.getID())) {
+                        rc.pickUpUnit(robot.getID());
+                        break;
+                    }
+                }
+                if (onWall(rc.getLocation())) {
+                    droneMoveTowards(dirTo(hqLoc).opposite());
+                } else if (radiusTo(hqLoc) == 18 || radiusTo(hqLoc) == 13 || radiusTo(hqLoc) == 10 || radiusTo(hqLoc) == 9) {
+                    RobotInfo[] wallChecker = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), rc.getTeam());
+                    for (RobotInfo robot : wallChecker) {
+                        if (robot.getType() == RobotType.DELIVERY_DRONE && onWall(robot.getLocation()) && rc.getLocation().isAdjacentTo(robot.getLocation())) {
+                            droneMoveTowards(dirTo(hqLoc).opposite());
+                            wasBroken = true;
+                            break;
+                        }
+                    }
+                } else {
+                    praiseGod();
+
                 }
             }
         }
@@ -1346,14 +1382,26 @@ public strictfp class RobotPlayer {
     }
 
     static void praiseGod() throws GameActionException {
-        if (rc.getLocation().x - hqLoc.x == -3 && rc.getLocation().y - hqLoc.y < 3) {
-            droneMoveTowards(Direction.NORTH);
-        } else if (rc.getLocation().x - hqLoc.x == 3 && rc.getLocation().y - hqLoc.y > -3) {
-            droneMoveTowards(Direction.SOUTH);
-        } else if (rc.getLocation().y - hqLoc.y == -3 && rc.getLocation().x - hqLoc.x > -3) {
-            droneMoveTowards(Direction.WEST);
-        } else if (rc.getLocation().y - hqLoc.y == 3 && rc.getLocation().x - hqLoc.x < 3) {
-            droneMoveTowards(Direction.EAST);
+        if (radiusTo(hqLoc) == 18 || radiusTo(hqLoc) == 13 || radiusTo(hqLoc) == 10 || radiusTo(hqLoc) == 9) {
+            if (rc.getLocation().x - hqLoc.x <= -3 && rc.getLocation().y - hqLoc.y < 3) {
+                droneMoveTowards(Direction.NORTH);
+            } else if (rc.getLocation().x - hqLoc.x >= 3 && rc.getLocation().y - hqLoc.y > -3) {
+                droneMoveTowards(Direction.SOUTH);
+            } else if (rc.getLocation().y - hqLoc.y <= -3 && rc.getLocation().x - hqLoc.x > -3) {
+                droneMoveTowards(Direction.WEST);
+            } else if (rc.getLocation().y - hqLoc.y >= 3 && rc.getLocation().x - hqLoc.x < 3) {
+                droneMoveTowards(Direction.EAST);
+            }
+        } else {
+            if (rc.getLocation().x - hqLoc.x <= -3 && rc.getLocation().y - hqLoc.y < 3) {
+                droneMoveTowards(Direction.NORTHEAST);
+            } else if (rc.getLocation().x - hqLoc.x >= 3 && rc.getLocation().y - hqLoc.y > -3) {
+                droneMoveTowards(Direction.SOUTHWEST);
+            } else if (rc.getLocation().y - hqLoc.y <= -3 && rc.getLocation().x - hqLoc.x > -3) {
+                droneMoveTowards(Direction.NORTHWEST);
+            } else if (rc.getLocation().y - hqLoc.y >= 3 && rc.getLocation().x - hqLoc.x < 3) {
+                droneMoveTowards(Direction.SOUTHEAST);
+            }
         }
     }
 
