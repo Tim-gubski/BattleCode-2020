@@ -77,6 +77,7 @@ public strictfp class RobotPlayer {
     static boolean rushFactory = false;
     static boolean endGame = false;
     static boolean goRight = true;
+    static boolean comeBack = false;
     static Direction lastDirection;
 
     /**
@@ -669,7 +670,7 @@ public strictfp class RobotPlayer {
                     droneMoveTowards(dirTo(hqLoc).opposite());
                 }
                 //YOINKING TIME
-            } else if (rc.getRoundNum() > 900 && isYoinker) {
+            } else if (rc.getRoundNum() > 900 && isYoinker && !comeBack) {
                 Team enemy = rc.getTeam().opponent();
                 MapLocation[] targets = new MapLocation[]{new MapLocation(rc.getMapWidth() - hqLoc.x, rc.getMapHeight() - hqLoc.y),
                     new MapLocation(rc.getMapWidth() - hqLoc.x, hqLoc.y),
@@ -688,7 +689,7 @@ public strictfp class RobotPlayer {
 
                         }
                     }
-                } else if (rc.getRoundNum() > 1200 && enemyHQ != null && isYoinker) {
+                } else if (rc.getRoundNum() > 1200 && enemyHQ != null && isYoinker && !comeBack) {
                     //YOINKING
                     if (!rc.isCurrentlyHoldingUnit()) {
                         //scan for robots
@@ -726,15 +727,14 @@ public strictfp class RobotPlayer {
                                     droneMoveTowards(dirTo(enemyHQ).opposite());
                                 }
                             }
-                            // if no robots found swarm around enemy HQ
+                            // if no robots found come back
                         } else {
-                            if (droneSwarmAround(enemyHQ, 5)) {
-                            } else {
-                                droneMoveTowards(dirTo(enemyHQ).opposite());
-                            }
+                            comeBack = true;
+                            droneMoveTowards(hqLoc);
                         }
                         // if robot picked up the run the hell away
                     } else {
+                        comeBack = true;
                         aboveUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
                         belowUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
                         leftOfUnit = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y);
@@ -785,13 +785,33 @@ public strictfp class RobotPlayer {
                     praiseGod();
 
                 }
-            } else if (!isYoinker) {
+            } else if (!isYoinker || comeBack) {
                 boolean wasBroken = false;
-                RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), rc.getTeam().opponent());
-                for (RobotInfo robot : robots) {
-                    if (robot.getType() == RobotType.LANDSCAPER && rc.canPickUpUnit(robot.getID())) {
-                        rc.pickUpUnit(robot.getID());
-                        break;
+                if (!rc.isCurrentlyHoldingUnit()) {
+                    RobotInfo[] robots = rc.senseNearbyRobots(rc.getCurrentSensorRadiusSquared(), rc.getTeam().opponent());
+                    for (RobotInfo robot : robots) {
+                        if (robot.getType() == RobotType.LANDSCAPER && rc.canPickUpUnit(robot.getID())) {
+                            rc.pickUpUnit(robot.getID());
+                            break;
+                        } else {
+                            droneMoveTowards(robot.getLocation());
+                        }
+                    }
+                } else {
+                    aboveUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y + 1);
+                    belowUnit = new MapLocation(rc.getLocation().x, rc.getLocation().y - 1);
+                    leftOfUnit = new MapLocation(rc.getLocation().x - 1, rc.getLocation().y);
+                    rightOfUnit = new MapLocation(rc.getLocation().x + 1, rc.getLocation().y);
+                    if (rc.senseFlooding(aboveUnit) && rc.canDropUnit(dirTo(aboveUnit))) {
+                        rc.dropUnit(Direction.NORTH);
+                    } else if (rc.senseFlooding(belowUnit) && rc.canDropUnit(dirTo(belowUnit))) {
+                        rc.dropUnit(Direction.SOUTH);
+                    } else if (rc.senseFlooding(leftOfUnit) && rc.canDropUnit(dirTo(leftOfUnit))) {
+                        rc.dropUnit(Direction.NORTH);
+                    } else if (rc.senseFlooding(rightOfUnit) && rc.canDropUnit(dirTo(rightOfUnit))) {
+                        rc.dropUnit(Direction.SOUTH);
+                    } else {
+                        droneMoveTowards(dirTo(enemyHQ).opposite());
                     }
                 }
                 if (onWall(rc.getLocation())) {
@@ -909,7 +929,7 @@ public strictfp class RobotPlayer {
                 landscaperCount++;
             }
         }
-        if (landscaperCount >= 16 || (rc.getTeamSoup()>250 && landscaperCount>=7)) {
+        if (landscaperCount >= 16 || (rc.getTeamSoup() > 250 && landscaperCount >= 7)) {
             return true;
         } else {
             return false;
