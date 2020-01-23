@@ -232,12 +232,11 @@ public strictfp class RobotPlayer {
             if (robot.getType() == RobotType.DELIVERY_DRONE && rc.canShootUnit(robot.getID()) && robot.team != rc.getTeam()) {
                 rc.shootUnit(robot.getID());
             }
-//            if (!isChosenOne && robot.getType() == RobotType.DELIVERY_DRONE && rc.getTeam() == robot.team) {
-//                if (trySendChain("69", robot.getID())) {
-//                    isChosenOne = true;
-//                }
-//
-//            }
+            if (!isChosenOne && robot.getType() == RobotType.DELIVERY_DRONE && rc.getTeam() == robot.team) {
+                if (trySendChain("69", robot.getID())) {
+                    isChosenOne = true;
+                }
+            }
             if(!isChosenMiner && robot.type == RobotType.MINER && rc.getTeam() == robot.team){
                 if (trySendChain("96", robot.getID())) {
                     isChosenMiner = true;
@@ -371,6 +370,7 @@ public strictfp class RobotPlayer {
                     firstNetGun=hqLoc.add(hqLoc.directionTo(schLoc).opposite().rotateLeft());
                 }
             }else{
+//                rc.disintegrate();
                 if(tryBuild(RobotType.NET_GUN,hqLoc.add(hqLoc.directionTo(firstNetGun).rotateRight().rotateRight()))){
                     rc.disintegrate();
                 }
@@ -609,23 +609,28 @@ public strictfp class RobotPlayer {
 
     static void runDeliveryDrone() throws GameActionException {
         chainScan();
-        if(!rc.isCurrentlyHoldingUnit()) {
-            RobotInfo[] robots = rc.senseNearbyRobots();
-            for (RobotInfo robot : robots) {
-                System.out.println(!onWall(robot.location));
-                if (robot.type == RobotType.LANDSCAPER && robot.team == rc.getTeam() && !onWall(robot.location)) {
-                    System.out.println("I want to pick up" + Integer.toString(robot.ID));
-                    tryPickUp(robot.ID);
+        if(isChosenOne) {
+            if (!rc.isCurrentlyHoldingUnit()) {
+                RobotInfo[] robots = rc.senseNearbyRobots();
+                for (RobotInfo robot : robots) {
+                    System.out.println(!onWall(robot.location));
+                    if (robot.type == RobotType.LANDSCAPER && robot.team == rc.getTeam() && !onWall(robot.location)) {
+                        System.out.println("I want to pick up" + Integer.toString(robot.ID));
+                        tryPickUp(robot.ID);
+                    }
                 }
+                swarmTo(hqLoc);
+            } else {
+                for (Direction dir : directions) {
+                    if (rc.canDropUnit(dir) && onWall(rc.getLocation().add(dir))) {
+                        rc.dropUnit(dir);
+                        break;
+                    }
+                }
+                swarmTo(hqLoc);
             }
-            swarmTo(hqLoc);
         }else{
-            for(Direction dir : directions){
-                if(rc.canDropUnit(dir) && onWall(rc.getLocation().add(dir))){
-                    rc.dropUnit(dir);
-                    break;
-                }
-            }swarmTo(hqLoc);
+
         }
 
 
@@ -744,6 +749,22 @@ public strictfp class RobotPlayer {
             }
         }
     }
+
+    static boolean wallFilled() throws GameActionException{
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        landscaperCount = 0;
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.LANDSCAPER && robot.team == rc.getTeam()) {
+                landscaperCount++;
+            }
+        }
+        if(landscaperCount>=16){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
 
     static Direction lesGoThisWay() throws GameActionException{
         RobotInfo[] robots = rc.senseNearbyRobots();
