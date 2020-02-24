@@ -2,6 +2,7 @@ package AngryWaffleMaker;
 
 import battlecode.common.*;
 
+//This is a comment
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
